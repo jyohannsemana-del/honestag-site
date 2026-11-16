@@ -1,11 +1,14 @@
-# honestAG su GitHub Pages
+# HonestAG — sito pubblico
 
-## Pubblicazione
-1. Crea un repository pubblico su GitHub.
-2. Carica `index.html` e `.nojekyll` nella cartella principale del repository.
-3. Apri **Settings → Pages**.
-4. In **Build and deployment**, scegli **Deploy from a branch**, seleziona `main` e la cartella `/ (root)`, quindi salva.
-5. Attendi la pubblicazione: GitHub mostrerà l’indirizzo del sito nella pagina Pages.
+Questo repository contiene esclusivamente la pagina pubblica di HonestAG. La dashboard privata non è inclusa.
 
-## Chatbot
-Il sito invia i messaggi a `/api/chat`, ma il codice del backend non è incluso in questo pacchetto. La pagina si pubblica, ma il chatbot non risponderà finché non viene configurato un servizio backend.
+## Pubblicazione con Cloudflare Pages
+
+Il sito è HTML statico. In Cloudflare Pages collega questo repository, lascia vuoto il comando di build e imposta la cartella di output su `.`. Cloudflare assegnerà un indirizzo `*.pages.dev`.
+
+Dopo la pubblicazione, aggiungi l'indirizzo esatto `pages.dev` come segreto `PUBLIC_SITE_URL` nelle Edge Functions del progetto Supabase HonestAG. Così il sito potrà chiamare il chatbot.
+
+## File pubblici
+
+- `index.html` — pagina del sito.
+- `chatbot-config.js` — URL della funzione chatbot; non contiene chiavi private.

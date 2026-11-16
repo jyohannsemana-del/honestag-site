@@ -1,1056 +1,127 @@
-<!DOCTYPE html>
-<html lang="it" class="dark scroll-smooth">
+<!doctype html>
+<html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HonestAG | Software &amp; Artificial Intelligence</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            900: '#4c1d95',
-                            accent: '#c084fc',
-                            neon: '#e879f9',
-                            cyan: '#06b6d4',
-                            dark: '#050509',
-                            surface: '#0c0c14',
-                            card: 'rgba(15, 15, 26, 0.75)'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Plus Jakarta Sans', 'Inter', 'sans-serif'],
-                        mono: ['Space Grotesk', 'Fira Code', 'monospace']
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'float': 'float 6s ease-in-out infinite',
-                        'spin-slow': 'spin 20s linear infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-12px)' }
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Three.js Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #050509; }
-        ::-webkit-scrollbar-thumb { background: #1e1b4b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #7c3aed; }
-
-        .glass-panel {
-            background: rgba(12, 12, 20, 0.8);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .glass-card {
-            background: rgba(18, 18, 30, 0.7);
-            backdrop-filter: blur(14px);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .glass-card:hover {
-            border-color: rgba(192, 132, 252, 0.5);
-            box-shadow: 0 0 30px rgba(124, 58, 237, 0.3);
-            transform: translateY(-4px);
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #ffffff 0%, #c084fc 45%, #06b6d4 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        #custom-cursor {
-            pointer-events: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 24px; height: 24px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(232, 121, 249, 0.8) 0%, rgba(124, 58, 237, 0.15) 70%, transparent 100%);
-            transform: translate(-50%, -50%);
-            transition: transform 0.05s ease-out;
-            z-index: 9999;
-            mix-blend-mode: screen;
-        }
-
-        .canvas-3d-container {
-            cursor: grab;
-        }
-        .canvas-3d-container:active {
-            cursor: grabbing;
-        }
-        #slide-viewer:fullscreen #fullscreen-controls,
-        #slide-viewer:-webkit-full-screen #fullscreen-controls,
-        #slide-viewer.is-fullscreen-fallback #fullscreen-controls { display: flex; }
-        #slide-viewer.is-fullscreen-fallback {
-            position: fixed; inset: 0; z-index: 9998; width: 100vw; height: 100vh;
-            max-height: none; aspect-ratio: auto; border-radius: 0;
-        }
-        #fullscreen-controls {
-            display: none; position: absolute; inset: 0; align-items: center;
-            justify-content: space-between; padding: 1rem; pointer-events: none; z-index: 40;
-        }
-        #fullscreen-controls button {
-            pointer-events: auto; width: 3rem; height: 3rem;
-            border: 1px solid rgba(255,255,255,.2); border-radius: 9999px; color: white;
-            background: rgba(12,12,20,.72); backdrop-filter: blur(10px); cursor: pointer;
-            transition: background .2s ease, transform .2s ease;
-        }
-        #fullscreen-controls button:hover { background: rgba(124,58,237,.9); transform: scale(1.06); }
-        #fullscreen-hint {
-            position: absolute; left: 50%; bottom: 1rem; transform: translateX(-50%);
-            padding: .45rem .75rem; border: 1px solid rgba(255,255,255,.12);
-            border-radius: 9999px; color: rgba(255,255,255,.75);
-            background: rgba(12,12,20,.72); font: 11px/1.3 'Space Grotesk', sans-serif; white-space: nowrap;
-        }
-        #fullscreen-exit {
-            display: none; position: absolute; top: .75rem; right: .75rem; z-index: 45;
-            width: 2.5rem; height: 2.5rem; border: 1px solid rgba(255,255,255,.2);
-            border-radius: 9999px; color: white; background: rgba(12,12,20,.72); cursor: pointer;
-        }
-        #slide-viewer:fullscreen #fullscreen-exit,
-        #slide-viewer:-webkit-full-screen #fullscreen-exit,
-        #slide-viewer.is-fullscreen-fallback #fullscreen-exit { display: block; }
-        @media (max-width: 640px) {
-            #fullscreen-controls { padding: .5rem; }
-            #fullscreen-controls button { width: 2.5rem; height: 2.5rem; }
-            #fullscreen-hint { bottom: .5rem; font-size: 10px; }
-            #presentation .glass-card { padding: .75rem; }
-            #presentation h2 { font-size: 1.75rem; line-height: 1.2; }
-            #slide-viewer {
-                aspect-ratio: auto; display: block; height: min(70svh, 650px); min-height: 420px;
-                overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
-            }
-            #slide-viewer .slide-item {
-                height: auto !important; min-height: 100%; padding: 1rem !important; overflow: visible !important;
-            }
-            #slide-viewer .slide-item > .relative.z-10 {
-                height: auto; min-height: 100%; justify-content: flex-start; gap: 1rem;
-            }
-            #slide-viewer .slide-item .my-auto { margin-top: 0; margin-bottom: 0; }
-            #slide-viewer .slide-item > .relative.z-10 > div:last-child { flex-wrap: wrap; gap: .4rem .75rem; }
-            #slide-viewer table { font-size: .72rem; }
-            #slide-viewer th, #slide-viewer td { padding: .4rem .25rem; }
-            #slide-dots { order: 3; flex-basis: 100%; justify-content: center; flex-wrap: wrap; }
-            #slide-viewer:fullscreen,
-            #slide-viewer:-webkit-full-screen,
-            #slide-viewer.is-fullscreen-fallback {
-                width: 100vw; height: 100svh; min-height: 100svh; max-height: none; border-radius: 0;
-            }
-            #slide-viewer:fullscreen #fullscreen-controls,
-            #slide-viewer:-webkit-full-screen #fullscreen-controls,
-            #slide-viewer.is-fullscreen-fallback #fullscreen-controls { position: fixed; }
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f8fafc">
+  <meta name="description" content="Siti web professionali, gestione tecnica e assistenza personale continua. Scopri i piani START e PRO di HonestAG agency.">
+  <title>HonestAG agency — Il tuo sito, senza pensieri tecnici</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{color-scheme:light;--bg:#fff;--surface:#f7f9fc;--surface-2:#eef3f9;--text:#111827;--muted:#64748b;--line:#e3e9f1;--blue:#2563eb;--blue-2:#1d4ed8;--blue-soft:#eaf1ff;--mint:#d9f3e8;--green:#16865c;--orange:#ed8b24;--shadow:0 22px 70px rgba(34,62,103,.10);--nav:rgba(255,255,255,.84);--radius:22px;--font: 'DM Sans',sans-serif;--display:'Manrope',sans-serif}
+    [data-theme="dark"]{color-scheme:dark;--bg:#09090b;--surface:#141418;--surface-2:#1c1c22;--text:#f4f4f5;--muted:#a1a1aa;--line:#303038;--blue:#78a6ff;--blue-2:#9dbbff;--blue-soft:#17233c;--mint:#173528;--green:#65d6a1;--orange:#ffb15c;--shadow:0 22px 70px rgba(0,0,0,.32);--nav:rgba(9,9,11,.82)}
+    [data-accessible="true"]{--blue:#005a9c;--blue-2:#00467a;--blue-soft:#e4f2ff;--orange:#d55e00;--green:#007a53;--line:#607080;--muted:#435164;--text:#101820;--surface:#f2f5f8;--surface-2:#e3ebf2;--radius:18px;font-size:17px}
+    [data-theme="dark"][data-accessible="true"]{--blue:#56b4e9;--blue-2:#8dd5ff;--blue-soft:#123348;--orange:#e69f00;--green:#009e73;--line:#aab8c5;--muted:#d0dae3;--text:#fff;--surface:#101820;--surface-2:#1b2934}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:95px}body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:16px;line-height:1.65;transition:background .35s,color .35s}a{color:inherit;text-decoration:none}button,input,select,textarea{font:inherit}button,a{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--orange);outline-offset:3px}.wrap{width:min(1160px,calc(100% - 48px));margin:auto}.skip{position:absolute;top:-60px;left:16px;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:8px;z-index:99}.skip:focus{top:10px}
+    .nav{position:sticky;z-index:20;top:0;background:var(--nav);backdrop-filter:blur(18px);border-bottom:1px solid color-mix(in srgb,var(--line) 72%,transparent)}.nav-inner{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:800;font-size:17px;letter-spacing:-.7px;white-space:nowrap}.brand-mark{width:26px;height:26px;border-radius:9px;background:var(--blue);display:grid;place-items:center;color:white;font-weight:800;font-size:14px;box-shadow:0 5px 14px color-mix(in srgb,var(--blue) 35%,transparent)}.brand em{font-style:normal;color:var(--muted);font-weight:500}.nav-links{display:flex;align-items:center;gap:25px;font-size:13px;font-weight:600;color:var(--muted)}.nav-links a{transition:color .2s}.nav-links a:hover{color:var(--blue)}.nav-actions{display:flex;align-items:center;gap:9px}.icon-btn{width:38px;height:38px;border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:transform .2s,border .2s}.icon-btn:hover{transform:translateY(-2px);border-color:var(--blue)}.icon-btn svg{width:17px;height:17px}.access-btn{width:auto;border-radius:20px;padding:0 11px;gap:6px;display:flex;font-size:12px;font-weight:700}.btn{border:0;border-radius:12px;padding:13px 19px;display:inline-flex;align-items:center;justify-content:center;gap:9px;background:var(--blue);color:white;font-weight:700;font-size:14px;cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,background .22s}.btn:hover{transform:translateY(-2px);background:var(--blue-2);box-shadow:0 11px 24px color-mix(in srgb,var(--blue) 25%,transparent)}.btn-outline{background:transparent;color:var(--text);border:1px solid var(--line)}.btn-outline:hover{background:var(--surface);color:var(--text);box-shadow:none}.nav-cta{padding:10px 14px;font-size:12px}.menu-toggle{display:none}
+    .hero{position:relative;overflow:hidden;padding:89px 0 92px;background:radial-gradient(ellipse at 78% 12%,color-mix(in srgb,var(--blue-soft) 70%,transparent),transparent 36%),linear-gradient(180deg,var(--bg),var(--surface))}.hero-grid{display:grid;grid-template-columns:1.04fr .96fr;align-items:center;gap:48px}.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 11px;border:1px solid var(--line);background:var(--bg);border-radius:30px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.2px}.eyebrow-dot{width:7px;height:7px;background:#35b981;border-radius:50%;box-shadow:0 0 0 4px color-mix(in srgb,#35b981 15%,transparent)}h1,h2,h3,p{margin-top:0}h1{font:800 clamp(43px,5.2vw,68px)/1.06 var(--display);letter-spacing:-3.9px;margin:23px 0 21px;max-width:690px}h1 span{color:var(--blue)}.hero-copy{font-size:17px;color:var(--muted);max-width:530px;line-height:1.8}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}.hero-note{margin-top:21px;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:8px}.hero-note svg{color:var(--green)}
+    .visual{position:relative;min-height:432px;display:grid;place-items:center}.glow{position:absolute;width:350px;height:350px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--blue) 20%,transparent),transparent 68%);filter:blur(4px)}.preview{position:relative;width:min(430px,100%);background:var(--bg);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;transform:rotate(1deg);animation:float 7s ease-in-out infinite}.preview-top{height:43px;display:flex;align-items:center;gap:5px;padding:0 15px;border-bottom:1px solid var(--line);color:var(--muted);font-size:10px}.win-dot{width:7px;height:7px;background:#ed8790;border-radius:50%}.win-dot:nth-child(2){background:#f5c56d}.win-dot:nth-child(3){background:#62c998}.address{margin:auto;background:var(--surface);padding:3px 48px;border-radius:5px}.preview-content{padding:25px 27px 22px}.mini-logo{font-family:var(--display);font-size:10px;font-weight:800}.mini-hero{height:160px;margin-top:18px;border-radius:13px;background:linear-gradient(135deg,#dceaff,#f0f5ff 58%,#d9f3e8);position:relative;overflow:hidden;padding:19px}.mini-hero:after{content:"";position:absolute;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.48);right:-16px;top:13px}.mini-kicker{font-size:7px;color:#2563eb;letter-spacing:1.3px;font-weight:700}.mini-heading{font:800 24px/1.07 var(--display);letter-spacing:-1.2px;color:#14243b;margin:11px 0 8px;max-width:230px}.mini-line{width:126px;height:4px;border-radius:4px;background:rgba(24,51,84,.2);margin:5px 0}.mini-cta{margin-top:13px;border-radius:5px;background:#2563eb;color:#fff;width:75px;padding:5px;text-align:center;font-size:7px;font-weight:700}.mini-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}.mini-card{height:46px;border:1px solid var(--line);border-radius:8px;padding:8px}.mini-icon{width:13px;height:13px;border-radius:4px;background:var(--blue-soft);margin-bottom:5px}.mini-short{height:3px;width:40px;background:var(--line);border-radius:4px}.status-card{position:absolute;background:var(--bg);border:1px solid var(--line);border-radius:13px;box-shadow:0 12px 34px rgba(35,56,85,.12);padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700}.status-card small{display:block;color:var(--muted);font-size:9px;font-weight:500}.status-card.ssl{right:-4px;top:76px}.status-card.care{left:-12px;bottom:58px}.status-icon{width:32px;height:32px;display:grid;place-items:center;background:var(--mint);color:var(--green);border-radius:10px}.status-icon svg{width:16px;height:16px}
+    .section{padding:98px 0}.section.soft{background:var(--surface)}.section-head{text-align:center;max-width:650px;margin:0 auto 44px}.kicker{text-transform:uppercase;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:1.8px;margin-bottom:10px}.section h2{font:800 clamp(32px,4vw,45px)/1.15 var(--display);letter-spacing:-1.9px;margin-bottom:13px}.section-head p{color:var(--muted);font-size:15px;line-height:1.8;margin:0}.features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.feature{background:var(--bg);border:1px solid var(--line);border-radius:17px;padding:24px 21px;transition:transform .25s,border-color .25s,box-shadow .25s}.feature:hover{transform:translateY(-5px);border-color:color-mix(in srgb,var(--blue) 50%,var(--line));box-shadow:var(--shadow)}.feature-icon{width:42px;height:42px;border-radius:13px;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;margin-bottom:19px}.feature-icon svg{width:20px;height:20px}.feature h3{font:700 16px/1.35 var(--display);letter-spacing:-.35px;margin-bottom:9px}.feature p{font-size:13px;color:var(--muted);line-height:1.75;margin:0}
+    .plans{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:920px;margin:auto;align-items:stretch}.plan{position:relative;padding:31px 32px;border:1px solid var(--line);background:var(--bg);border-radius:22px;transition:transform .28s,border-color .28s,box-shadow .28s}.plan:hover{transform:translateY(-5px);border-color:var(--blue);box-shadow:var(--shadow)}.plan.pro{border:1.5px solid var(--blue);box-shadow:0 12px 40px color-mix(in srgb,var(--blue) 12%,transparent)}.badge{position:absolute;right:19px;top:19px;padding:5px 10px;background:var(--blue);color:white;border-radius:30px;font-size:10px;font-weight:800;letter-spacing:.3px}.plan-label{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:1.5px}.plan h3{font:800 29px var(--display);letter-spacing:-1px;margin:8px 0}.plan-desc{min-height:50px;color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:22px}.plan hr{border:0;border-top:1px solid var(--line);margin:20px 0}.plan-list{list-style:none;padding:0;margin:0 0 25px}.plan-list li{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.55;margin:12px 0}.check{color:var(--green);font-weight:900;font-size:15px}.plan .btn{width:100%}.plan-foot{text-align:center;font-size:11px;color:var(--muted);margin:12px 0 0}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;max-width:980px;margin:auto}.step{position:relative;padding:0 35px;text-align:center}.step:not(:last-child):after{content:"";position:absolute;top:24px;left:calc(50% + 35px);width:calc(100% - 70px);border-top:1px dashed var(--line)}.step-no{position:relative;z-index:1;width:48px;height:48px;margin:0 auto 20px;border-radius:16px;background:var(--blue-soft);color:var(--blue);font:800 15px var(--display);display:grid;place-items:center;border:4px solid var(--bg)}.step h3{font:700 16px var(--display);margin-bottom:9px}.step p{color:var(--muted);font-size:13px;line-height:1.75;margin:0}
+    .faq-list{max-width:760px;margin:auto;border-top:1px solid var(--line)}.faq-item{border-bottom:1px solid var(--line)}.faq-q{width:100%;text-align:left;border:0;padding:20px 4px;background:none;color:var(--text);display:flex;align-items:center;justify-content:space-between;gap:16px;font-weight:700;cursor:pointer;font-size:15px}.faq-q svg{width:18px;height:18px;flex:0 0 auto;color:var(--muted);transition:transform .25s}.faq-q[aria-expanded="true"] svg{transform:rotate(45deg);color:var(--blue)}.faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s}.faq-a>div{overflow:hidden}.faq-a p{color:var(--muted);font-size:14px;line-height:1.8;margin:0;padding:0 36px 0 4px}.faq-q[aria-expanded="true"]+.faq-a{grid-template-rows:1fr}.faq-q[aria-expanded="true"]+.faq-a p{padding-bottom:19px}
+    .contact{padding:90px 0;background:var(--surface)}.contact-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:70px;align-items:start}.contact-copy h2{font:800 42px/1.12 var(--display);letter-spacing:-1.9px;margin-bottom:16px}.contact-copy>p{color:var(--muted);font-size:15px;line-height:1.8}.contact-perks{list-style:none;padding:0;margin:26px 0}.contact-perks li{display:flex;gap:10px;align-items:center;font-size:13px;margin:12px 0}.contact-perks .check{font-size:17px}.direct{display:inline-flex;align-items:center;gap:9px;color:var(--green);font-size:13px;font-weight:700}.direct svg{width:19px;height:19px}.form-card{background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 12px 40px rgba(34,62,103,.06)}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.field{display:flex;flex-direction:column;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:12px;font-weight:700}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 13px;background:var(--bg);color:var(--text);font-size:13px;transition:border .2s}.field input::placeholder,.field textarea::placeholder{color:var(--muted);opacity:.8}.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue);outline:2px solid color-mix(in srgb,var(--blue) 18%,transparent)}.field textarea{min-height:100px;resize:vertical}.form-bottom{display:flex;align-items:center;gap:14px;margin-top:17px}.form-bottom .btn{min-width:180px}.privacy-note{font-size:10px;color:var(--muted);line-height:1.5}.success{display:none;margin-top:14px;border-radius:10px;background:var(--mint);color:var(--green);padding:12px 14px;font-size:13px;font-weight:700}.success.show{display:block}
+    footer{background:var(--bg);padding:44px 0 24px}.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1.1fr;gap:35px;padding-bottom:34px}.footer-about p{max-width:270px;color:var(--muted);font-size:12px;line-height:1.8;margin-top:15px}.footer-col h4{font-size:12px;margin:3px 0 14px}.footer-col a,.footer-col span{display:block;color:var(--muted);font-size:12px;margin:9px 0;transition:color .2s}.footer-col a:hover{color:var(--blue)}.footer-legal{border-top:1px solid var(--line);padding-top:18px;display:flex;justify-content:space-between;gap:20px;color:var(--muted);font-size:10px}.legal-links{display:flex;gap:16px}.legal-links button{border:0;padding:0;background:none;color:inherit;font-size:inherit;cursor:pointer}.legal-links button:hover{color:var(--blue)}
+    .modal{position:fixed;inset:0;z-index:50;display:none;place-items:center;padding:20px;background:rgba(8,16,30,.55);backdrop-filter:blur(4px)}.modal.open{display:grid}.modal-card{width:min(470px,100%);background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:25px;box-shadow:var(--shadow)}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0;font:700 20px var(--display)}.modal-card p{color:var(--muted);font-size:13px;line-height:1.8;margin:16px 0 0}.reveal{opacity:0;transform:translateY(18px);transition:opacity .65s ease,transform .65s cubic-bezier(.2,.8,.2,1)}.reveal.visible{opacity:1;transform:none}
+    .chat-launch{position:fixed;right:22px;bottom:22px;z-index:25;border:0;border-radius:30px;background:var(--blue);color:#fff;padding:13px 17px;font-weight:700;box-shadow:0 10px 30px color-mix(in srgb,var(--blue) 28%,transparent);cursor:pointer}.chat-panel{position:fixed;right:22px;bottom:82px;z-index:26;width:min(370px,calc(100vw - 30px));height:min(520px,calc(100vh - 120px));display:none;flex-direction:column;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}.chat-panel.open{display:flex}.chat-head{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-weight:700}.chat-log{padding:14px;overflow:auto;flex:1}.chat-msg{max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:13px;padding:10px 12px;margin:8px 0;font-size:13px;line-height:1.6;background:var(--surface)}.chat-msg.user{margin-left:auto;background:var(--blue-soft)}.chat-form{display:flex;gap:7px;padding:12px;border-top:1px solid var(--line)}.chat-form input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:10px;background:var(--bg);color:var(--text)}.chat-form button{border:0;border-radius:9px;background:var(--blue);color:#fff;padding:0 13px;font-weight:700;cursor:pointer}
+    @keyframes float{0%,100%{transform:rotate(1deg) translateY(0)}50%{transform:rotate(1deg) translateY(-9px)}}
+    @media(max-width:960px){.nav-links{gap:14px}.nav-cta{display:none}.hero-grid{gap:22px}.features{grid-template-columns:repeat(2,1fr)}.contact-grid{gap:36px}.footer-grid{grid-template-columns:1.4fr 1fr 1fr}.footer-col:last-child{grid-column:2/-1}}
+    @media(max-width:720px){.wrap{width:min(100% - 36px,560px)}.nav-inner{height:66px}.menu-toggle{display:grid}.nav-actions{gap:6px}.access-btn{width:38px;height:38px;padding:0;justify-content:center}.access-label{display:none}.nav-links{display:none;position:absolute;left:0;right:0;top:65px;padding:14px 20px 20px;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:0 15px 25px rgba(0,0,0,.06);flex-direction:column;align-items:stretch;gap:0}.nav-links.open{display:flex}.nav-links a{padding:12px 0;border-bottom:1px solid var(--line)}.hero{padding:64px 0 52px}.hero-grid{grid-template-columns:1fr;gap:12px}.hero-copy{font-size:15px}.visual{min-height:375px;margin-top:5px}.preview{max-width:400px}.status-card.ssl{right:0}.status-card.care{left:0;bottom:36px}.section{padding:72px 0}.section-head{margin-bottom:32px}.plans{grid-template-columns:1fr;max-width:480px}.plan{padding:27px}.plan-desc{min-height:0}.steps{grid-template-columns:1fr;gap:27px;max-width:450px}.step{padding:0 22px}.step:not(:last-child):after{top:43px;left:50%;width:0;height:30px;border-top:0;border-left:1px dashed var(--line)}.contact{padding:68px 0}.contact-grid{grid-template-columns:1fr;gap:27px}.contact-copy h2{font-size:35px}.footer-grid{grid-template-columns:1fr 1fr;gap:25px}.footer-about{grid-column:1/-1}.footer-col:last-child{grid-column:auto}.footer-legal{flex-direction:column}.form-card{padding:21px}}
+    @media(max-width:420px){.wrap{width:calc(100% - 30px)}.brand{font-size:14px;gap:7px}.brand-mark{width:24px;height:24px}.nav-actions{gap:5px}.icon-btn{width:35px;height:35px}.hero h1{font-size:43px;letter-spacing:-2.7px}.hero-actions{flex-direction:column;align-items:stretch}.hero-actions .btn{width:100%}.visual{min-height:325px}.preview-content{padding:20px}.mini-hero{height:143px}.mini-heading{font-size:21px}.status-card{padding:9px 10px;font-size:10px}.status-card.ssl{top:40px}.status-card.care{bottom:20px}.features{grid-template-columns:1fr}.feature{padding:20px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.form-bottom{align-items:flex-start;flex-direction:column}.form-bottom .btn{width:100%}.footer-grid{gap:18px}.legal-links{flex-wrap:wrap}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}.reveal{opacity:1;transform:none}}
+  </style>
 </head>
-<body class="bg-brand-dark text-slate-100 font-sans selection:bg-brand-600 selection:text-white relative overflow-x-hidden">
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<linearGradient id="nxg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="200" y2="200"><stop offset="0" stop-color="#d946ef"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#2f6bff"/></linearGradient>
-<radialGradient id="nxs"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#a9b4c9"/></radialGradient>
-<filter id="nxglow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-<symbol id="honestag-mark" viewBox="0 0 200 200"><g filter="url(#nxglow)" fill="none" stroke="url(#nxg)" stroke-linecap="round" stroke-linejoin="round">
-<polygon points="100,12 176,56 176,144 100,188 24,144 24,56" stroke-width="7"/><path d="M68 62V138M68 100H132M132 62V138" stroke-width="12"/>
-<path d="M100 12V38M100 188V162M24 56L45 68M176 144L155 132" stroke-width="4" opacity=".75"/></g>
-<g fill="url(#nxs)"><circle cx="68" cy="138" r="8"/><circle cx="68" cy="62" r="8"/><circle cx="132" cy="138" r="8"/><circle cx="132" cy="62" r="8"/><circle cx="100" cy="100" r="6"/><circle cx="100" cy="12" r="4.5"/><circle cx="100" cy="188" r="4.5"/></g></symbol></defs></svg>
-
-
-    <!-- Glowing Follower Cursor -->
-    <div id="custom-cursor"></div>
-
-    <!-- Background WebGL Canvas (3D Neural Particles Network) -->
-    <canvas id="bg-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-50"></canvas>
-
-    <!-- Navigation Header -->
-    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="main-header">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-            <nav class="glass-panel rounded-2xl px-6 py-3 flex items-center justify-between border border-white/10 shadow-2xl">
-                <!-- Brand Logo -->
-                <a href="#hero" class="flex items-center gap-3 group"><svg class="w-9 h-9 group-hover:scale-105 transition-transform"><use href="#honestag-mark"/></svg><span class="text-xl font-extrabold tracking-tight text-white font-mono">HonestAG</span></a>
-
-                <!-- Desktop Navigation Links -->
-                <div class="hidden lg:flex items-center space-x-1">
-                    <a href="#hero" class="px-3.5 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg transition-colors hover:bg-white/5">Home</a>
-                    <a href="#presentation" class="px-3.5 py-2 text-sm font-medium text-brand-accent hover:text-white rounded-lg transition-colors hover:bg-brand-500/20 flex items-center gap-1.5">
-                        <i class="fa-solid fa-cubes text-xs"></i> Presentazione
-                    </a>
-                    <a href="#company-identity" class="px-3.5 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg transition-colors hover:bg-white/5">Segni Distintivi</a>
-                    <a href="#software" class="px-3.5 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg transition-colors hover:bg-white/5">Servizi</a>
-                    <a href="#chatbot" class="px-3.5 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg transition-colors hover:bg-white/5">Chatbot Live</a>
-                    <a href="#contatti" class="px-3.5 py-2 text-sm font-medium text-slate-300 hover:text-white rounded-lg transition-colors hover:bg-white/5">Contatti</a>
-                    
-                </div>
-
-                <!-- Action CTA & Cart Trigger -->
-                <div class="flex items-center gap-3">
-                    
-
-                    <a href="#presentation" class="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-neon hover:opacity-95 text-white font-semibold text-sm transition-all shadow-lg shadow-brand-600/30">
-                        <i class="fa-solid fa-vr-cardboard text-xs"></i>
-                        <span>Esplora Slide</span>
-                    </a>
-
-                    <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-300 hover:text-white">
-                        <i class="fa-solid fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </nav>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden lg:hidden glass-panel border-b border-white/10 px-6 py-4 mt-2 max-w-7xl mx-4 rounded-2xl transition-all">
-            <div class="flex flex-col space-y-3">
-                <a href="#hero" onclick="toggleMobileMenu()" class="text-slate-300 hover:text-brand-accent py-1">Home</a>
-                <a href="#presentation" onclick="toggleMobileMenu()" class="text-brand-accent font-semibold py-1">Presentazione</a>
-                <a href="#company-identity" onclick="toggleMobileMenu()" class="text-slate-300 hover:text-brand-accent py-1">Segni Distintivi</a>
-                <a href="#software" onclick="toggleMobileMenu()" class="text-slate-300 hover:text-brand-accent py-1">Servizi</a>
-                <a href="#chatbot" onclick="toggleMobileMenu()" class="text-slate-300 hover:text-brand-accent py-1">Chatbot Demo</a>
-                <a href="#chatbot-guide" onclick="toggleMobileMenu()" class="text-slate-300 hover:text-brand-accent py-1">Come funziona</a>
-                <a href="#contatti" onclick="toggleMobileMenu()" class="text-slate-300 hover:text-brand-accent py-1">Contatti</a>
-                
-            </div>
-        </div>
-    </header>
-
-    <!-- MAIN BODY CONTENT -->
-    <main class="relative z-10 pt-28 pb-16">
-
-        <!-- SECTION 1: HERO SECTION WITH 3D INTERACTIVE HERO CORE -->
-        <section id="hero" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
-            <div class="grid lg:grid-cols-12 gap-12 items-center">
-                <div class="lg:col-span-7 space-y-8">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card border border-brand-500/40 text-xs font-mono text-brand-300">
-                        <span class="w-2.5 h-2.5 rounded-full bg-brand-neon animate-pulse"></span>
-                        Software &amp; Artificial Intelligence
-                    </div>
-
-                    <h1 class="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white leading-[1.1]">
-                        Software e <span class="gradient-text">Artificial Intelligence</span>
-                    </h1>
-
-                    <p class="text-slate-400 text-lg sm:text-xl font-light leading-relaxed max-w-2xl">
-                        HonestAG è il progetto imprenditoriale di Jyohann Semana: chatbot, assistenti virtuali e soluzioni software personalizzate per aziende e privati.
-                    </p>
-
-                    <div class="flex flex-wrap items-center gap-4 pt-2">
-                        <a href="#presentation" class="px-8 py-4 rounded-xl bg-gradient-to-r from-brand-600 via-brand-500 to-brand-neon text-white font-bold text-base shadow-xl shadow-brand-600/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3">
-                            <i class="fa-solid fa-circle-play"></i>
-                            <span>Avvia Presentazione</span>
-                        </a>
-                        <a href="#chatbot" class="px-8 py-4 rounded-xl glass-panel hover:bg-white/10 border border-white/15 text-white font-semibold text-base transition-all flex items-center gap-3">
-                            <i class="fa-solid fa-robot"></i>
-                            <span>Testa Chatbot Live</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- 3D Interactive Hero Canvas Box -->
-                <div class="lg:col-span-5 flex justify-center">
-                    <div class="w-full max-w-md aspect-square rounded-3xl glass-card p-4 relative overflow-hidden flex flex-col justify-between border-brand-500/50 shadow-2xl group canvas-3d-container">
-                        <div class="flex items-center justify-between border-b border-white/10 pb-3 z-10 bg-brand-surface/40 p-2 rounded-xl">
-                            <span class="text-xs font-mono text-brand-accent flex items-center gap-2">
-                                <i class="fa-solid fa-cube text-brand-neon"></i> Insegna HonestAG 3D
-                            </span>
-                            <span class="px-2.5 py-0.5 rounded-full bg-brand-500/20 text-brand-neon text-[10px] font-mono border border-brand-500/30">DRAG TO ROTATE</span>
-                        </div>
-
-                        <!-- Hero 3D Three.js Render Target -->
-                        <div class="relative flex-1 w-full my-2 rounded-2xl overflow-hidden">
-                            <canvas id="hero-3d-canvas" class="w-full h-full block"></canvas>
-                        </div>
-
-                        <div class="glass-panel p-3 rounded-xl text-center text-xs text-slate-300 border border-white/5 z-10">
-                            Trascina con il mouse (o con il dito) per ruotare il logo HonestAG 3D in tempo reale.
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- SECTION 2: 3D INTEGRATED PRESENTATION SLIDE DECK WITH REALTIME 3D CANVAS -->
-        <section id="presentation" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 scroll-mt-24">
-            <div class="text-center max-w-3xl mx-auto mb-10">
-                <span class="px-3.5 py-1.5 rounded-full bg-brand-500/20 border border-brand-500/40 text-brand-300 font-mono text-xs uppercase tracking-widest">
-                    <i class="fa-solid fa-cubes mr-1.5"></i> Presentazione in 9 Slide
-                </span>
-                <h2 class="text-4xl font-extrabold text-white mt-3">Presentazione Aziendale HonestAG</h2>
-                <p class="text-slate-400 mt-2">Ditta, insegna, marchio e servizi dell'azienda in 9 slide.</p>
-            </div>
-
-            <!-- Slide Player Box Container -->
-            <div class="glass-card rounded-3xl border border-brand-500/40 p-4 sm:p-6 shadow-2xl relative">
-                <!-- Top Slide Controls Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-white/10 mb-4">
-                    <div class="flex items-center gap-3">
-                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
-                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
-                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
-                        <span class="text-xs font-mono text-slate-300 ml-2">HonestAG_AI_Presentazione</span>
-                    </div>
-                    
-                    <div class="flex items-center gap-3">
-                        <span id="slide-indicator" class="text-xs font-mono bg-white/10 px-3 py-1.5 rounded-lg text-brand-accent">Slide 1 di 9</span>
-                        <button onclick="toggleFullscreen()" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-brand-600 text-white text-xs font-semibold transition-all">
-                            <i class="fa-solid fa-expand mr-1.5"></i> Schermo Intero
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Active Slide Display Window -->
-                <div id="slide-viewer" class="relative w-full aspect-[16/9] bg-brand-dark rounded-2xl overflow-hidden border border-white/10 flex items-center justify-center">                    <div id="fullscreen-controls" aria-label="Controlli presentazione a schermo intero">
-                        <button type="button" onclick="prevSlide()" aria-label="Slide precedente"><i class="fa-solid fa-chevron-left"></i></button>
-                        <span id="fullscreen-hint">Usa le frecce, la rotella o i pulsanti per cambiare slide</span>
-                        <button type="button" onclick="nextSlide()" aria-label="Slide successiva"><i class="fa-solid fa-chevron-right"></i></button>
-                    </div>
-                    <button id="fullscreen-exit" type="button" onclick="toggleFullscreen()" aria-label="Esci da schermo intero"><i class="fa-solid fa-xmark"></i></button>
-<div class="slide-item active w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div class="flex justify-between items-center"><span class="font-mono text-xs sm:text-sm text-brand-accent">PRESENTAZIONE AZIENDALE</span><span class="text-[10px] sm:text-xs px-3 py-1 rounded-full border border-brand-500/40 bg-brand-500/20 text-brand-300">Ditta &bull; Insegna &bull; Marchio</span></div><div class="grid md:grid-cols-12 gap-4 items-center my-auto"><div class="md:col-span-7"><h1 class="text-5xl sm:text-7xl font-extrabold gradient-text">HonestAG</h1><p class="text-lg sm:text-2xl text-slate-300 mt-2 font-light">Software &amp; Artificial Intelligence</p><p class="mt-4 text-sm sm:text-base text-slate-400">Titolare: <b class="text-white">Jyohann Semana</b></p></div><div class="md:col-span-5 flex justify-center"><svg class="w-28 h-28 sm:w-56 sm:h-56 animate-float"><use href="#honestag-mark"/></svg></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">01 / L'azienda</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">Presentazione dell'azienda</h2></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-auto"><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-user-tie text-brand-accent text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Chi siamo</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">HonestAG è un progetto imprenditoriale di Jyohann Semana, dedicato a software e intelligenza artificiale.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-laptop-code text-brand-neon text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Di cosa ci occupiamo</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">Sviluppiamo software e vendiamo servizi digitali per aziende e privati.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-bullseye text-brand-cyan text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Il nostro obiettivo</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">Offrire soluzioni digitali moderne, utili e accessibili.</p></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">02 / Primo segno distintivo</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">La ditta</h2></div><div class="grid md:grid-cols-12 gap-4 my-auto items-center"><div class="md:col-span-5 text-center md:text-left"><div class="inline-block px-4 py-3 rounded-xl border border-brand-500/40 bg-brand-500/15 font-mono text-base sm:text-xl font-bold">HonestAG<br><span class="text-sm sm:text-base font-normal text-slate-300">di Jyohann Semana</span></div><p class="text-[11px] sm:text-sm text-slate-400 mt-3">È il nome con cui l'imprenditore esercita l'attività e deve contenere il cognome o la sigla del titolare.</p></div><div class="md:col-span-7 grid gap-2"><div class="bg-white/5 border border-white/10 rounded-xl p-3"><b class="text-brand-accent text-sm">Verità</b><p class="text-[11px] sm:text-sm text-slate-300">Contiene il cognome del titolare, Semana.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3"><b class="text-brand-accent text-sm">Novità</b><p class="text-[11px] sm:text-sm text-slate-300">Non deve creare confusione con ditte già usate da altri imprenditori.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3"><b class="text-brand-accent text-sm">Liceità</b><p class="text-[11px] sm:text-sm text-slate-300">Rispetta la legge e non inganna il pubblico.</p></div></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">03 / Secondo segno distintivo</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">L'insegna</h2></div><div class="grid md:grid-cols-12 gap-4 my-auto items-center"><div class="md:col-span-5 space-y-2 text-[11px] sm:text-sm text-slate-300"><p>L'insegna è la scritta <b class="text-white">HonestAG</b> in 3D: lettere cromate con luci viola e blu.</p><p><b class="text-brand-accent">Funzione:</b> identifica il luogo in cui si svolge l'attività e la distingue dalle altre.</p><p><b class="text-brand-accent">Criteri:</b> capacità distintiva, assenza di confusione e liceità.</p></div><div class="md:col-span-7 h-36 sm:h-60 rounded-2xl overflow-hidden border border-brand-500/30 bg-black canvas-3d-container relative"><canvas id="logo-slide-canvas" class="w-full h-full block"></canvas><span class="absolute bottom-2 left-2 text-[9px] font-mono text-brand-accent bg-black/60 px-2 py-0.5 rounded border border-white/10">Trascina per ruotare</span></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">04 / Terzo segno distintivo</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">Il marchio</h2></div><div class="grid md:grid-cols-12 gap-4 my-auto items-center"><div class="md:col-span-5 flex justify-center"><svg class="w-32 h-32 sm:w-60 sm:h-60"><use href="#honestag-mark"/></svg></div><div class="md:col-span-7 space-y-2 text-[11px] sm:text-sm text-slate-300"><p>Un esagono tecnologico con una <b class="text-white">H</b> formata da nodi collegati, come una rete neurale. Si riconosce anche senza la scritta HonestAG.</p><p><b class="text-brand-accent">Funzione:</b> identifica e distingue i servizi dell'azienda.</p><div class="flex flex-wrap gap-2 pt-1"><span class="px-3 py-1 rounded-full bg-brand-500/20 border border-brand-500/40 text-brand-300 text-[11px] sm:text-xs">Capacità distintiva</span><span class="px-3 py-1 rounded-full bg-brand-500/20 border border-brand-500/40 text-brand-300 text-[11px] sm:text-xs">Novità</span><span class="px-3 py-1 rounded-full bg-brand-500/20 border border-brand-500/40 text-brand-300 text-[11px] sm:text-xs">Liceità</span></div></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">05 / Riepilogo</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">I tre segni distintivi</h2></div><table class="w-full text-left text-[11px] sm:text-base my-auto"><thead><tr class="text-slate-500 text-[10px] sm:text-xs uppercase"><th class="pb-2">Segno</th><th>Cosa identifica</th><th>Per HonestAG</th></tr></thead><tbody><tr class="border-t border-white/10"><td class="py-3 pr-3 font-bold text-brand-accent">Ditta</td><td class="pr-3 text-slate-300">L'imprenditore</td><td class="text-white">HonestAG di Jyohann Semana</td></tr><tr class="border-t border-white/10"><td class="py-3 pr-3 font-bold text-brand-accent">Insegna</td><td class="pr-3 text-slate-300">Il luogo in cui si svolge l'attività</td><td class="text-white">La scritta HonestAG in 3D</td></tr><tr class="border-t border-white/10"><td class="py-3 pr-3 font-bold text-brand-accent">Marchio</td><td class="pr-3 text-slate-300">I prodotti e i servizi</td><td class="text-white">Simbolo: esagono con la H a nodi</td></tr></tbody></table><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">06 / Cosa offriamo</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">I nostri servizi</h2></div><div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-auto"><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-comments text-brand-accent text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Chatbot</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">Rispondono ai clienti in modo rapido e coerente.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-headset text-brand-neon text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Assistenti virtuali</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">Aiutano a gestire richieste e attività ripetitive.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-code text-brand-cyan text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Software personalizzati</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">Costruiti sulle esigenze di aziende e privati.</p></div><div class="bg-white/5 border border-white/10 rounded-xl p-3 sm:p-4"><i class="fa-solid fa-globe text-brand-neon text-lg sm:text-xl"></i><h4 class="font-bold text-sm sm:text-base mt-2">Realizzazione siti web</h4><p class="text-[11px] sm:text-sm text-slate-400 mt-1">Realizzati in base alle esigenze di aziende e privati.</p></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div><span class="text-[10px] sm:text-xs font-bold text-brand-neon uppercase tracking-widest">07 / La nostra identità</span><h2 class="text-2xl sm:text-4xl font-extrabold mt-1">Missione</h2></div><div class="my-auto text-center"><p class="text-xl sm:text-4xl font-extrabold gradient-text leading-snug max-w-3xl mx-auto">Sviluppare soluzioni digitali moderne, utili e accessibili.</p><div class="flex justify-center gap-2 sm:gap-3 mt-5 flex-wrap"><span class="px-4 py-2 rounded-full border border-white/15 bg-white/5 text-xs sm:text-sm">Moderne</span><span class="px-4 py-2 rounded-full border border-white/15 bg-white/5 text-xs sm:text-sm">Utili</span><span class="px-4 py-2 rounded-full border border-white/15 bg-white/5 text-xs sm:text-sm">Accessibili</span></div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-<div class="slide-item hidden w-full h-full p-5 sm:p-9 flex flex-col justify-between text-white relative overflow-hidden bg-gradient-to-br from-[#050509] via-[#0c0b1f] to-[#0b1030]"><div class="absolute -right-16 -top-16 w-72 h-72 rounded-full bg-brand-600/25 blur-3xl pointer-events-none"></div><div class="absolute -left-16 -bottom-16 w-72 h-72 rounded-full bg-[#2f6bff]/20 blur-3xl pointer-events-none"></div><div class="relative z-10 flex flex-col justify-between h-full gap-3"><div></div><div class="my-auto text-center flex flex-col items-center"><svg class="w-24 h-24 sm:w-40 sm:h-40"><use href="#honestag-mark"/></svg><h2 class="text-3xl sm:text-5xl font-extrabold gradient-text mt-2">HonestAG</h2><p class="text-sm sm:text-lg text-white font-semibold mt-1">Jyohann Semana</p><p class="text-xs sm:text-base text-slate-400 mt-2 max-w-xl">Trasformiamo le idee in soluzioni digitali semplici e utili.</p></div><div></div><div class="text-[10px] sm:text-xs text-slate-500 border-t border-white/10 pt-2 flex justify-between"><span>HonestAG &bull; Software &amp; Artificial Intelligence</span><span>Jyohann Semana</span></div></div></div>
-</div>
-
-                <!-- Slide Navigation Controls -->
-                <div id="slide-navigation" class="flex flex-wrap items-center justify-between mt-6 gap-y-3">
-                    <button onclick="prevSlide()" class="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-brand-600 text-white font-semibold text-sm transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-chevron-left"></i> Precedente
-                    </button>
-                    
-                    <div class="flex gap-2" id="slide-dots">
-                        <!-- Dots dynamically rendered -->
-                    </div>
-
-                    <button onclick="nextSlide()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-brand-neon text-white font-semibold text-sm transition-all flex items-center gap-2">
-                        Successivo <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- SEGNI DISTINTIVI --><section id="company-identity" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/10"><div class="text-center max-w-3xl mx-auto mb-12"><span class="text-brand-accent font-mono text-xs uppercase tracking-widest">Segni distintivi</span><h2 class="text-4xl font-extrabold text-white mt-2">Ditta, Insegna e Marchio</h2><p class="text-slate-400 mt-2">I tre elementi che identificano HonestAG.</p></div><div class="grid md:grid-cols-3 gap-8"><div class="glass-card p-6 rounded-2xl border border-white/10"><div class="w-full h-36 rounded-xl bg-brand-surface/60 border border-white/10 mb-4 overflow-hidden relative flex items-center justify-center "><span class="font-mono text-lg font-bold text-white text-center">HonestAG<br><span class="text-sm font-normal text-slate-300">di Jyohann Semana</span></span></div><span class="text-xs font-mono text-brand-accent">ART. 2563 C.C.</span><h3 class="text-2xl font-bold text-white mt-1 mb-2">DITTA</h3><p class="text-slate-300 font-mono text-xs bg-white/5 p-2.5 rounded-lg border border-white/5 mb-3">HonestAG di Jyohann Semana</p><p class="text-xs text-slate-400">Identifica l'imprenditore attraverso la ditta. Criteri: verità, novità e liceità.</p></div><div class="glass-card p-6 rounded-2xl border border-white/10"><div class="w-full h-36 rounded-xl bg-brand-surface/60 border border-white/10 mb-4 overflow-hidden relative flex items-center justify-center canvas-3d-container"><canvas id="insegna-3d-canvas" class="w-full h-full block"></canvas></div><span class="text-xs font-mono text-brand-accent">ART. 2568 C.C.</span><h3 class="text-2xl font-bold text-white mt-1 mb-2">INSEGNA</h3><p class="text-slate-300 font-mono text-xs bg-white/5 p-2.5 rounded-lg border border-white/5 mb-3">La scritta HonestAG in 3D</p><p class="text-xs text-slate-400">Identifica il luogo in cui si svolge l'attività. Criteri: capacità distintiva, assenza di confusione e liceità.</p></div><div class="glass-card p-6 rounded-2xl border border-white/10"><div class="w-full h-36 rounded-xl bg-brand-surface/60 border border-white/10 mb-4 overflow-hidden relative flex items-center justify-center "><svg class="w-28 h-28"><use href="#honestag-mark"/></svg></div><span class="text-xs font-mono text-brand-accent">ART. 2569 C.C.</span><h3 class="text-2xl font-bold text-white mt-1 mb-2">MARCHIO</h3><p class="text-slate-300 font-mono text-xs bg-white/5 p-2.5 rounded-lg border border-white/5 mb-3">Simbolo: esagono con la H a nodi</p><p class="text-xs text-slate-400">Identifica prodotti e servizi. Requisiti: capacità distintiva, novità, liceità.</p></div></div></section>
-
-
-        <!-- SERVIZI --><section id="software" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/10"><div class="text-center max-w-3xl mx-auto mb-12"><span class="text-brand-accent font-mono text-xs uppercase tracking-widest">Servizi</span><h2 class="text-4xl font-extrabold text-white mt-2">Cosa offre HonestAG</h2><p class="text-slate-400 mt-2">Software e servizi digitali per aziende e privati.</p></div><div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-6"><div class="glass-card rounded-2xl p-6 border border-white/10"><i class="fa-solid fa-comments text-brand-neon text-3xl"></i><h3 class="text-xl font-bold text-white mt-4">Chatbot personalizzati</h3><p class="text-slate-400 text-sm mt-2">Rispondono ai clienti in modo rapido e coerente.</p><p class="text-slate-300 text-sm leading-relaxed mt-3">Progettiamo chatbot calibrati sulle informazioni, sul tono e sugli obiettivi del tuo progetto. Possono rispondere alle domande ricorrenti e orientare gli utenti verso i servizi e le informazioni più utili.</p></div><div class="glass-card rounded-2xl p-6 border border-white/10"><i class="fa-solid fa-headset text-brand-neon text-3xl"></i><h3 class="text-xl font-bold text-white mt-4">Assistenti virtuali</h3><p class="text-slate-400 text-sm mt-2">Aiutano a gestire richieste e attività ripetitive.</p><p class="text-slate-300 text-sm leading-relaxed mt-3">Supportano la gestione delle richieste e delle attività ricorrenti con flussi pensati insieme al cliente. Offrono un punto di riferimento chiaro per informazioni e operazioni quotidiane.</p></div><div class="glass-card rounded-2xl p-6 border border-white/10"><i class="fa-solid fa-code text-brand-neon text-3xl"></i><h3 class="text-xl font-bold text-white mt-4">Software personalizzati</h3><p class="text-slate-400 text-sm mt-2">Costruiti sulle esigenze di aziende e privati.</p><p class="text-slate-300 text-sm leading-relaxed mt-3">Realizziamo strumenti digitali su misura, partendo dalle esigenze e dagli obiettivi del progetto. Ogni soluzione è pensata per semplificare le attività previste e inserirsi con naturalezza nel lavoro quotidiano.</p></div><div class="glass-card rounded-2xl p-6 border border-white/10"><i class="fa-solid fa-globe text-brand-neon text-3xl"></i><h3 class="text-xl font-bold text-white mt-4">Realizzazione siti web</h3><p class="text-slate-400 text-sm mt-2">Siti web realizzati in base alle esigenze di aziende e privati.</p><p class="text-slate-300 text-sm leading-relaxed mt-3">Progettiamo siti chiari, ben organizzati e coerenti con il brand del cliente. Struttura e contenuti valorizzano prodotti e servizi e rendono semplice la navigazione e il contatto.</p></div></div></section>
-
-
-        <!-- SECTION 5: INTERACTIVE CHATBOT DEMO -->
-        <section id="chatbot" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/10">
-            <div class="text-center max-w-3xl mx-auto mb-10">
-                <span class="text-brand-neon font-mono text-xs uppercase tracking-widest">ASSISTENTE AI</span>
-                <h2 class="text-4xl font-extrabold text-white mt-2">Chatbot HonestAG</h2>
-                <p class="text-slate-400 mt-2">Chiedi informazioni sui servizi e sull'attività di HonestAG.</p>
-            </div>
-
-            <div class="max-w-4xl mx-auto glass-card rounded-3xl border border-brand-500/40 overflow-hidden shadow-2xl flex flex-col h-[520px]">
-                <div class="p-4 bg-brand-surface border-b border-white/10 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-600 to-brand-neon flex items-center justify-center text-white">
-                            <i class="fa-solid fa-robot"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-bold text-sm">HonestAG Virtual Agent</h4>
-                            <span class="text-xs text-slate-400">Assistente AI HonestAG</span>
-                        </div>
-                    </div>
-                    <span class="text-xs font-mono text-slate-400">HonestAG AI</span>
-                </div>
-
-                <div id="main-chat-container" class="flex-1 p-6 overflow-y-auto space-y-4 text-sm font-sans">
-                    <div class="flex gap-3 max-w-[85%]">
-                        <div class="w-8 h-8 rounded-full bg-brand-600 flex-shrink-0 flex items-center justify-center text-xs text-white">AI</div>
-                        <div class="bg-white/10 rounded-2xl p-4 text-slate-200 border border-white/5">
-                            Benvenuto in HonestAG! Chiedimi della ditta, dell'insegna, del marchio o dei servizi.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-4 bg-brand-surface border-t border-white/10">
-                    <form onsubmit="handleMainChatSubmit(event)" class="flex gap-3">
-                        <input type="text" id="main-chat-input" placeholder="Scrivi una domanda (es: 'Spiegami la Ditta' o 'Che servizi offrite?')..." class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand-500" required>
-                        <button type="submit" class="px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-brand-neon text-white font-bold text-sm hover:opacity-90 transition-all">
-                            Invia
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </section>
-
-
-        <section id="chatbot-guide" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/10 scroll-mt-24">
-            <div class="text-center max-w-3xl mx-auto mb-10">
-                <span class="text-brand-accent font-mono text-xs uppercase tracking-widest">Guida pratica</span>
-                <h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Come funziona una chatbot</h2>
-                <p class="text-slate-400 mt-3">Riceve una domanda, interpreta la richiesta e risponde usando istruzioni e informazioni preparate per l’azienda.</p>
-            </div>
-            <div class="grid md:grid-cols-3 gap-5">
-                <article class="glass-card rounded-2xl p-6 border border-white/10"><span class="text-brand-neon font-mono text-sm">01 / INFORMAZIONI</span><h3 class="text-lg font-bold text-white mt-3">Prepara le risposte</h3><p class="text-slate-400 text-sm mt-2">Raccogli servizi, orari, domande frequenti e istruzioni. La chatbot ha bisogno di contenuti affidabili da consultare.</p></article>
-                <article class="glass-card rounded-2xl p-6 border border-white/10"><span class="text-brand-neon font-mono text-sm">02 / COLLEGAMENTO</span><h3 class="text-lg font-bold text-white mt-3">Collega il motore</h3><p class="text-slate-400 text-sm mt-2">Per risposte generate con AI, collega un modello tramite un servizio lato server. La chiave API resta protetta sul server, mai nel codice pubblico del sito.</p></article>
-                <article class="glass-card rounded-2xl p-6 border border-white/10"><span class="text-brand-neon font-mono text-sm">03 / PUBBLICAZIONE</span><h3 class="text-lg font-bold text-white mt-3">Prova e migliora</h3><p class="text-slate-400 text-sm mt-2">Inserisci il widget nel sito, prova domande reali e correggi le risposte. Controlla periodicamente che le informazioni siano aggiornate.</p></article>
-            </div>
-            <div class="mt-6 rounded-2xl border border-brand-500/30 bg-brand-500/10 p-5 text-sm text-slate-300"><strong class="text-white">La demo qui sopra:</strong> risponde con regole e parole chiave impostate nel sito. È interattiva, ma non è collegata a un modello AI o a un database. Per trasformarla in un assistente AI operativo servono un modello, un backend protetto e una base di conoscenza aziendale.</div>
-        </section>
-        <section id="contatti" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-white/10 scroll-mt-24">
-            <div class="text-center max-w-3xl mx-auto mb-10"><span class="text-brand-neon font-mono text-xs uppercase tracking-widest">Parliamone</span><h2 class="text-3xl sm:text-4xl font-extrabold text-white mt-2">Contatta HonestAG</h2><p class="text-slate-400 mt-3">Scegli il canale che preferisci.</p></div>
-            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
-                <a href="https://wa.me/393391043954?text=Ciao%20HonestAG%2C%20vorrei%20informazioni%20sui%20servizi." target="_blank" rel="noopener noreferrer" class="glass-card rounded-2xl p-6 border border-white/10 hover:border-emerald-400/60 transition-colors"><i class="fa-brands fa-whatsapp text-3xl text-emerald-400"></i><h3 class="text-lg font-bold text-white mt-3">WhatsApp</h3><p class="text-slate-400 text-sm mt-1">+39 339 104 3954</p></a>
-                <a href="tel:+393391043954" class="glass-card rounded-2xl p-6 border border-white/10 hover:border-brand-accent/60 transition-colors"><i class="fa-solid fa-phone text-3xl text-brand-accent"></i><h3 class="text-lg font-bold text-white mt-3">Chiama</h3><p class="text-slate-400 text-sm mt-1">+39 339 104 3954</p></a>
-                <div aria-disabled="true" class="glass-card rounded-2xl p-6 border border-white/10 opacity-70"><i class="fa-brands fa-discord text-3xl text-indigo-300"></i><h3 class="text-lg font-bold text-white mt-3">Discord</h3><p class="text-slate-400 text-sm mt-1">Invito del server da aggiungere</p></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- SLIDE-OVER CART DRAWER -->
-    <div id="cart-drawer" class="hidden fixed inset-y-0 right-0 w-full max-w-md bg-brand-surface border-l border-white/10 z-[100] transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between shadow-2xl">
-        <div class="p-6 border-b border-white/10 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-bag-shopping text-brand-accent"></i> Carrello Digitale
-            </h3>
-            <button onclick="toggleCart()" class="p-2 text-slate-400 hover:text-white">
-                <i class="fa-solid fa-xmark text-xl"></i>
-            </button>
-        </div>
-
-        <div id="cart-items-container" class="flex-1 p-6 overflow-y-auto space-y-4">
-            <p class="text-slate-400 text-center text-sm py-12">Il carrello è vuoto.</p>
-        </div>
-
-        <div class="p-6 border-t border-white/10 bg-black/40">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-slate-400 text-sm">Totale:</span>
-                <span id="cart-total-price" class="text-2xl font-bold font-mono text-brand-neon">€0.00</span>
-            </div>
-            <button onclick="checkout()" class="w-full py-4 rounded-xl bg-gradient-to-r from-brand-600 via-brand-500 to-brand-neon text-white font-bold text-sm shadow-xl">
-                Completa Acquisto
-            </button>
-        </div>
+<body>
+  <a class="skip" href="#main">Vai al contenuto</a>
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#top" aria-label="HonestAG agency, torna all'inizio"><span class="brand-mark">h</span><span>HonestAG <em>agency</em></span></a>
+      <nav class="nav-links" id="navLinks" aria-label="Navigazione principale">
+        <a href="#servizi">Servizi</a><a href="#piani">Piani</a><a href="#metodo">Come lavoriamo</a><a href="#faq">FAQ</a><a href="#contatti">Contatti</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="Attiva tema scuro" title="Cambia tema"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg></button>
+        <button class="icon-btn access-btn" id="accessToggle" type="button" aria-pressed="false" aria-label="Attiva modalità accessibilità ad alto contrasto" title="Modalità accessibilità"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path d="M12 9v6m-2.2-2.2 4.4-1.6"/></svg><span class="access-label">Accessibilità</span></button>
+        <a class="btn nav-cta" href="#contatti">Richiedi un preventivo <span aria-hidden="true">↗</span></a>
+        <button class="icon-btn menu-toggle" id="menuToggle" type="button" aria-label="Apri menu" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      </div>
     </div>
-
-    <!-- FLOATING CORNER CHATBOT WIDGET BUTTON -->
-    <div class="fixed bottom-6 right-6 z-40">
-        <button onclick="toggleWidgetChat()" class="w-14 h-14 rounded-full bg-gradient-to-tr from-brand-600 to-brand-neon text-white flex items-center justify-center text-2xl shadow-2xl shadow-brand-500/50 hover:scale-110 transition-transform">
-            <i class="fa-solid fa-comments"></i>
-        </button>
-    </div>
-
-    <!-- FLOATING CHATBOT WIDGET PANEL -->
-    <div id="widget-chat-panel" class="fixed bottom-24 right-6 w-80 sm:w-96 glass-card rounded-2xl border border-brand-500/40 shadow-2xl z-50 hidden flex flex-col h-96 overflow-hidden">
-        <div class="p-3.5 bg-brand-surface border-b border-white/10 flex items-center justify-between">
-            <span class="text-xs font-bold text-white flex items-center gap-2"><i class="fa-solid fa-robot text-brand-neon"></i> HonestAG Quick Assistant</span>
-            <button onclick="toggleWidgetChat()" class="text-slate-400 hover:text-white text-sm"><i class="fa-solid fa-xmark"></i></button>
+  </header>
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="wrap hero-grid">
+        <div class="reveal">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Il tuo partner digitale, sempre al tuo fianco</div>
+          <h1>Il tuo sito web professionale, <span>senza pensieri tecnici.</span></h1>
+          <p class="hero-copy">In HonestAG agency progettiamo, pubblichiamo e gestiamo la tua presenza online. Design moderno, sicurezza totale e assistenza diretta con un unico punto di riferimento.</p>
+          <div class="hero-actions"><a class="btn" href="#piani">Scopri i piani <span aria-hidden="true">↓</span></a><a class="btn btn-outline whatsapp-link" href="https://wa.me/393391043954?text=Ciao%20HonestAG%20agency%2C%20vorrei%20informazioni%20sui%20vostri%20servizi." target="_blank" rel="noopener noreferrer">Parla con noi su WhatsApp <span aria-hidden="true">↗</span></a></div>
+          <div class="hero-note"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg> Un referente dedicato. Tutto sotto controllo.</div>
         </div>
-        <div id="widget-chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs font-sans">
-            <div class="bg-white/10 p-3 rounded-xl text-slate-200">
-                Ciao! Sono il chatbot HonestAG. Chiedimi dell'azienda o dei servizi!
-            </div>
+        <div class="visual reveal" aria-label="Anteprima di un sito web gestito da HonestAG">
+          <div class="glow"></div>
+          <div class="preview"><div class="preview-top"><i class="win-dot"></i><i class="win-dot"></i><i class="win-dot"></i><span class="address">tuobusiness.it</span><span>↗</span></div><div class="preview-content"><div class="mini-logo">STUDIO & CO.</div><div class="mini-hero"><div class="mini-kicker">IL TUO SPAZIO, ONLINE</div><div class="mini-heading">Fai crescere<br>la tua attività.</div><div class="mini-line"></div><div class="mini-line" style="width:88px"></div><div class="mini-cta">Scopri di più&nbsp; →</div></div><div class="mini-cards"><div class="mini-card"><div class="mini-icon"></div><div class="mini-short"></div></div><div class="mini-card"><div class="mini-icon"></div><div class="mini-short"></div></div><div class="mini-card"><div class="mini-icon"></div><div class="mini-short"></div></div></div></div></div>
+          <div class="status-card ssl"><span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m9 12 2 2 4-4"/></svg></span><span>SSL attivo<small>Sito sempre protetto</small></span></div>
+          <div class="status-card care"><span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></span><span>Ci pensiamo noi<small>Tu pensa al tuo lavoro</small></span></div>
         </div>
-        <form onsubmit="handleWidgetChatSubmit(event)" class="p-2 border-t border-white/10 flex gap-2 bg-brand-surface">
-            <input type="text" id="widget-chat-input" placeholder="Chiedi qualcosa..." class="flex-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none" required>
-            <button type="submit" class="px-3 py-2 bg-brand-600 text-white rounded-lg text-xs font-bold">Invia</button>
-        </form>
-    </div>
-
-    <!-- FOOTER -->
-    <footer class="border-t border-white/10 py-8 text-center text-xs text-slate-500">
-        <p>© 2026 HonestAG – Jyohann Semana. Software &amp; Artificial Intelligence.</p>
-    </footer>
-
-
-    <!-- JAVASCRIPT & THREE.JS 3D MODELS LOGIC -->
-    <script>
-        // ==========================================
-        // HonestAG LOGO 3D ENGINE (Three.js r128)
-        // Lettere geometriche estruse con finitura metallica
-        // ==========================================
-        const HonestAGLogo = (function () {
-            const W = 80, H = 100, T = 20, GAP = 12;
-            // Lettere estruse che compongono per intero HonestAG.
-            const LETTERS = [
-                { outer: [[0,0],[T,0],[T,40],[W-T,40],[W-T,0],[W,0],[W,H],[W-T,H],[W-T,60],[T,60],[T,H],[0,H]] },
-                { outer: [[0,0],[W,0],[W,H],[0,H]], holes: [[[T,T],[T,H-T],[W-T,H-T],[W-T,T]]] },
-                { outer: [[0,0],[T,0],[W-T,63],[W-T,0],[W,0],[W,H],[W-T,H],[T,37],[T,H],[0,H]] },
-                { outer: [[0,0],[W,0],[W,T],[T,T],[T,40],[W-10,40],[W-10,60],[T,60],[T,H-T],[W,H-T],[W,H],[0,H]] },
-                { outer: [[0,0],[W-12,0],[W,T],[T,T],[T,40],[W,40],[W,H],[12,H],[0,H-12],[0,H-T],[W-T,H-T],[W-T,60],[0,60]] },
-                { outer: [[0,0],[W,0],[W,T],[W/2+T/2,T],[W/2+T/2,H],[W/2-T/2,H],[W/2-T/2,T],[0,T]] },
-                { outer: [[0,H],[30,0],[50,0],[W,H],[W-18,H],[54,70],[26,70],[18,H]] },
-                { outer: [[W,18],[W-10,0],[10,0],[0,10],[0,H-10],[10,H],[W-10,H],[W,H-10],[W,62],[W-T,62],[W-T,H-T],[T,H-T],[T,T],[W-T,T],[W-T,35],[W,35]] }
-            ];
-            const LOGO_W = 3.0;
-
-            function makeEnv(renderer) {
-                const c = document.createElement('canvas');
-                c.width = 1024; c.height = 512;
-                const g = c.getContext('2d');
-                const gr = g.createLinearGradient(0, 0, 0, 512);
-                gr.addColorStop(0, '#f4f7ff');
-                gr.addColorStop(0.30, '#8d9bb8');
-                gr.addColorStop(0.5, '#0b0d18');
-                gr.addColorStop(0.6, '#2a3350');
-                gr.addColorStop(1, '#d7def0');
-                g.fillStyle = gr; g.fillRect(0, 0, 1024, 512);
-                function box(x, y, w, h, col, blur) {
-                    g.save(); g.shadowColor = col; g.shadowBlur = blur; g.fillStyle = col;
-                    g.fillRect(x, y, w, h); g.restore();
-                }
-                box(90, 50, 170, 46, '#ffffff', 40);
-                box(430, 140, 64, 210, '#8b5cf6', 45);
-                box(700, 120, 56, 230, '#2f6bff', 45);
-                box(880, 60, 120, 40, '#ffffff', 40);
-                box(20, 300, 70, 110, '#e879f9', 35);
-                box(560, 380, 150, 30, '#ffffff', 30);
-                const tex = new THREE.CanvasTexture(c);
-                tex.mapping = THREE.EquirectangularReflectionMapping;
-                tex.encoding = THREE.sRGBEncoding;
-                const pm = new THREE.PMREMGenerator(renderer);
-                pm.compileEquirectangularShader();
-                const env = pm.fromEquirectangular(tex).texture;
-                tex.dispose(); pm.dispose();
-                return env;
-            }
-
-            function buildLogo() {
-                const faceMat = new THREE.MeshStandardMaterial({ color: 0xe9eef8, metalness: 1, roughness: 0.14, envMapIntensity: 1.3 });
-                const sideMat = new THREE.MeshStandardMaterial({ color: 0x8794b8, metalness: 1, roughness: 0.28, envMapIntensity: 1.1 });
-                const group = new THREE.Group();
-                let ox = 0;
-                function addLetterPart(points, holes = []) {
-                    const shape = new THREE.Shape();
-                    points.forEach((p, i) => {
-                        const X = p[0], Y = H - p[1];
-                        if (i === 0) shape.moveTo(X, Y); else shape.lineTo(X, Y);
-                    });
-                    shape.closePath();
-                    holes.forEach(pointsInHole => {
-                        const hole = new THREE.Path();
-                        pointsInHole.forEach((p, i) => {
-                            const X = p[0], Y = H - p[1];
-                            if (i === 0) hole.moveTo(X, Y); else hole.lineTo(X, Y);
-                        });
-                        hole.closePath();
-                        shape.holes.push(hole);
-                    });
-                    const geo = new THREE.ExtrudeGeometry(shape, {
-                        depth: 22, bevelEnabled: true, bevelThickness: 2.6, bevelSize: 2.2,
-                        bevelSegments: 3, curveSegments: 1
-                    });
-                    const mesh = new THREE.Mesh(geo, [faceMat, sideMat]);
-                    mesh.position.x = ox;
-                    group.add(mesh);
-                }
-                LETTERS.forEach(glyph => {
-                    addLetterPart(glyph.outer, glyph.holes || []);
-                    ox += W + GAP;
-                });
-                const box = new THREE.Box3().setFromObject(group);
-                const center = box.getCenter(new THREE.Vector3());
-                const size = box.getSize(new THREE.Vector3());
-                group.position.sub(center);
-                const pivot = new THREE.Group();
-                pivot.add(group);
-                const k = LOGO_W / size.x;
-                pivot.scale.setScalar(k);
-                return { pivot, width: LOGO_W, height: size.y * k };
-            }
-
-            function mount(id, opt) {
-                opt = opt || {};
-                const canvas = document.getElementById(id);
-                if (!canvas) return;
-                const parent = canvas.parentElement;
-                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-                renderer.outputEncoding = THREE.sRGBEncoding;
-                renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                renderer.toneMappingExposure = 1.1;
-
-                const scene = new THREE.Scene();
-                scene.environment = makeEnv(renderer);
-                const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-
-                const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(3, 4, 6); scene.add(key);
-                const violet = new THREE.PointLight(0x8b5cf6, 1.6, 20); violet.position.set(-4, 1, 4); scene.add(violet);
-                const cyan = new THREE.PointLight(0x2f6bff, 1.4, 20); cyan.position.set(4, -1.5, 4); scene.add(cyan);
-
-                const logo = buildLogo();
-                scene.add(logo.pivot);
-
-                let aura = null;
-                if (opt.aura) {
-                    aura = new THREE.Group();
-                    const ico = new THREE.Mesh(
-                        new THREE.IcosahedronGeometry(1.55, 1),
-                        new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.35 })
-                    );
-                    aura.add(ico);
-                    const n = 160, pos = new Float32Array(n * 3);
-                    for (let i = 0; i < n; i++) {
-                        const a = (i / n) * Math.PI * 2, r = 2.05 + (Math.random() - 0.5) * 0.2;
-                        pos[i*3] = Math.cos(a) * r; pos[i*3+1] = (Math.random() - 0.5) * 0.3; pos[i*3+2] = Math.sin(a) * r;
-                    }
-                    const pg = new THREE.BufferGeometry();
-                    pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-                    const ring = new THREE.Points(pg, new THREE.PointsMaterial({ size: 0.045, color: 0x2f6bff }));
-                    ring.rotation.x = 0.5;
-                    aura.add(ring);
-                    scene.add(aura);
-                }
-
-                const margin = opt.margin || 1.15;
-                function resize() {
-                    const w = parent.clientWidth, h = parent.clientHeight;
-                    if (!w || !h) return;
-                    renderer.setSize(w, h, false);
-                    camera.aspect = w / h;
-                    camera.updateProjectionMatrix();
-                    const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
-                    const dW = (logo.width / 2 * margin) / (t * camera.aspect);
-                    const dH = (logo.height / 2 * margin * 1.6) / t;
-                    camera.position.set(0, 0, Math.max(dW, dH));
-                    camera.lookAt(0, 0, 0);
-                }
-                resize();
-                if (window.ResizeObserver) new ResizeObserver(resize).observe(parent);
-                window.addEventListener('resize', resize);
-
-                // Trascinamento (mouse e touch)
-                let dragging = false, last = { x: 0, y: 0 };
-                parent.style.touchAction = 'pan-y';
-                parent.addEventListener('pointerdown', e => { dragging = true; last = { x: e.clientX, y: e.clientY }; });
-                window.addEventListener('pointerup', () => { dragging = false; });
-                window.addEventListener('pointercancel', () => { dragging = false; });
-                parent.addEventListener('pointermove', e => {
-                    if (!dragging) return;
-                    logo.pivot.rotation.y += (e.clientX - last.x) * 0.01;
-                    logo.pivot.rotation.x = Math.max(-0.7, Math.min(0.7, logo.pivot.rotation.x + (e.clientY - last.y) * 0.006));
-                    last = { x: e.clientX, y: e.clientY };
-                });
-
-                const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-                const clock = new THREE.Clock();
-                (function animate() {
-                    requestAnimationFrame(animate);
-                    if (!parent.offsetParent) return; // slide nascosta: non renderizzare
-                    const t = clock.getElapsedTime();
-                    if (!dragging) {
-                        let ry = logo.pivot.rotation.y;
-                        ry = ((ry + Math.PI) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2) - Math.PI;
-                        const ty = reduce ? 0 : Math.sin(t * 0.7) * 0.55;
-                        const tx = reduce ? 0 : Math.sin(t * 0.5) * 0.12;
-                        logo.pivot.rotation.y = ry + (ty - ry) * 0.04;
-                        logo.pivot.rotation.x += (tx - logo.pivot.rotation.x) * 0.04;
-                    }
-                    if (aura) { aura.rotation.y += 0.004; aura.rotation.x += 0.0015; }
-                    violet.position.x = -4 + Math.sin(t * 0.8) * 1.5;
-                    cyan.position.x = 4 + Math.cos(t * 0.7) * 1.5;
-                    renderer.render(scene, camera);
-                })();
-            }
-
-            return { mount: mount };
-        })();
-
-    </script>
-
-    <script>
-        // Custom Glowing Cursor Follower
-        const cursor = document.getElementById('custom-cursor');
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-        });
-
-        // Presentation Slide Deck State Engine
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide-item');
-        const indicator = document.getElementById('slide-indicator');
-        const dotsContainer = document.getElementById('slide-dots');
-
-        function initDots() {
-            dotsContainer.innerHTML = '';
-            slides.forEach((_, idx) => {
-                const dot = document.createElement('button');
-                dot.className = `w-2.5 h-2.5 rounded-full transition-all ${idx === 0 ? 'bg-brand-neon w-6' : 'bg-white/20'}`;
-                dot.onclick = () => goToSlide(idx);
-                dotsContainer.appendChild(dot);
-            });
-        }
-        initDots();
-
-        function updateSlideUI() {
-            slides.forEach((slide, idx) => {
-                if (idx === currentSlide) {
-                    slide.classList.remove('hidden');
-                    slide.classList.add('active');
-                } else {
-                    slide.classList.add('hidden');
-                    slide.classList.remove('active');
-                }
-            });
-
-            indicator.textContent = `Slide ${currentSlide + 1} di ${slides.length}`;
-            Array.from(dotsContainer.children).forEach((dot, idx) => {
-                if (idx === currentSlide) {
-                    dot.className = 'w-6 h-2.5 rounded-full bg-brand-neon transition-all';
-                } else {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-white/20 transition-all';
-                }
-            });
-        }
-
-        function nextSlide() {
-            currentSlide = (currentSlide + 1) % slides.length;
-            updateSlideUI();
-        }
-
-        function prevSlide() {
-            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
-            updateSlideUI();
-        }
-
-        function goToSlide(idx) {
-            currentSlide = idx;
-            updateSlideUI();
-        }
-
-        function toggleFullscreen() {
-            const elem = document.getElementById('slide-viewer');
-            const nativeFullscreen = document.fullscreenElement === elem || document.webkitFullscreenElement === elem;
-            const fallbackFullscreen = elem.classList.contains('is-fullscreen-fallback');
-            if (nativeFullscreen || fallbackFullscreen) {
-                if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen();
-                else if (document.webkitExitFullscreen && document.webkitFullscreenElement) document.webkitExitFullscreen();
-                elem.classList.remove('is-fullscreen-fallback');
-                return;
-            }
-            const request = elem.requestFullscreen || elem.webkitRequestFullscreen;
-            if (request) {
-                try {
-                    const result = request.call(elem);
-                    if (result && result.catch) result.catch(() => elem.classList.add('is-fullscreen-fallback'));
-                } catch (_) {
-                    elem.classList.add('is-fullscreen-fallback');
-                }
-            } else {
-                elem.classList.add('is-fullscreen-fallback');
-            }
-        }
-        // Navigazione della presentazione a schermo intero: frecce e rotella.
-        const slideViewer = document.getElementById('slide-viewer');
-        slideViewer.addEventListener('wheel', (e) => {
-            if (document.fullscreenElement !== slideViewer && document.webkitFullscreenElement !== slideViewer && !slideViewer.classList.contains('is-fullscreen-fallback')) return;
-            e.preventDefault();
-            if (Math.abs(e.deltaY) >= Math.abs(e.deltaX)) {
-                e.deltaY > 0 ? nextSlide() : prevSlide();
-            } else {
-                e.deltaX > 0 ? nextSlide() : prevSlide();
-            }
-        }, { passive: false });
-
-        document.addEventListener('keydown', (e) => {
-            if (document.fullscreenElement !== slideViewer && document.webkitFullscreenElement !== slideViewer && !slideViewer.classList.contains('is-fullscreen-fallback')) return;
-            if (e.target instanceof HTMLElement && e.target.matches('input, textarea, select, [contenteditable="true"]')) return;
-            if (e.key === 'Escape' && slideViewer.classList.contains('is-fullscreen-fallback')) { slideViewer.classList.remove('is-fullscreen-fallback'); return; }
-            if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown') {
-                e.preventDefault();
-                nextSlide();
-            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
-                e.preventDefault();
-                prevSlide();
-            }
-        });
-
-        // Navigation Mobile Menu Toggle
-        function toggleMobileMenu() {
-            document.getElementById('mobile-menu').classList.toggle('hidden');
-        }
-
-        // Cart Drawer logic
-        let cart = [];
-        function toggleCart() {
-            document.getElementById('cart-drawer').classList.toggle('translate-x-full');
-        }
-
-        function addToCart(title, price) {
-            cart.push({ id: Date.now(), title, price });
-            updateCartUI();
-            toggleCart();
-        }
-
-        function updateCartUI() {
-            const container = document.getElementById('cart-items-container');
-            const badge = document.getElementById('cart-badge');
-            const totalEl = document.getElementById('cart-total-price');
-
-            if (cart.length > 0) {
-                badge.textContent = cart.length;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
-            totalEl.textContent = '€' + total.toFixed(2);
-
-            if (cart.length === 0) {
-                container.innerHTML = '<p class="text-slate-400 text-center text-sm py-12">Il carrello è vuoto.</p>';
-            } else {
-                container.innerHTML = cart.map(item => `
-                    <div class="glass-card p-3.5 rounded-xl flex items-center justify-between border border-white/5">
-                        <div>
-                            <h4 class="text-white text-xs font-bold">${item.title}</h4>
-                            <div class="text-xs text-brand-neon font-mono mt-0.5">€${item.price.toFixed(2)}</div>
-                        </div>
-                        <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-300 p-1">
-                            <i class="fa-solid fa-trash-can text-xs"></i>
-                        </button>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function removeFromCart(id) {
-            cart = cart.filter(i => i.id !== id);
-            updateCartUI();
-        }
-
-        function checkout() {
-            if (!cart.length) return alert('Il carrello è vuoto!');
-            alert('Acquisto simulato completato con successo!');
-            cart = [];
-            updateCartUI();
-            toggleCart();
-        }
-
-        // Floating Chatbot Widget logic
-        function toggleWidgetChat() {
-            document.getElementById('widget-chat-panel').classList.toggle('hidden');
-        }
-
-        const chatHistories = { main: [], widget: [] };
-
-        async function requestHonestAGAnswer(history) {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ messages: history.slice(-10) })
-            });
-            const data = await response.json().catch(() => ({}));
-            if (!response.ok) throw new Error(data.error || 'Chatbot momentaneamente non disponibile.');
-            return data.answer;
-        }
-
-        function addChatReply(container, answer, compact = false) {
-            const reply = document.createElement('div');
-            reply.className = compact
-                ? 'bg-white/10 text-slate-200 p-2.5 rounded-xl max-w-[85%]'
-                : 'bg-white/10 rounded-2xl p-4 text-slate-200 border border-white/5';
-            reply.textContent = answer;
-            container.appendChild(reply);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        async function sendChatMessage(which, input, container) {
-            const value = input.value.trim();
-            if (!value) return;
-            const history = chatHistories[which];
-            history.push({ role: 'user', content: value });
-            const bubble = document.createElement('div');
-            bubble.className = which === 'widget'
-                ? 'bg-brand-600 text-white p-2.5 rounded-xl ml-auto max-w-[80%]'
-                : 'bg-brand-600 text-white rounded-2xl p-3.5 shadow-lg';
-            bubble.textContent = value;
-            if (which === 'main') {
-                const row = document.createElement('div');
-                row.className = 'flex gap-3 justify-end max-w-[85%] ml-auto';
-                row.appendChild(bubble);
-                container.appendChild(row);
-            } else container.appendChild(bubble);
-            input.value = '';
-            input.disabled = true;
-            container.scrollTop = container.scrollHeight;
-            try {
-                const answer = await requestHonestAGAnswer(history);
-                history.push({ role: 'assistant', content: answer });
-                if (history.length > 10) history.splice(0, history.length - 10);
-                addChatReply(container, answer, which === 'widget');
-            } catch (error) {
-                // Keep the user question in the local conversation; the next turn may retry.
-                addChatReply(container, error.message || 'Chatbot momentaneamente non disponibile.', which === 'widget');
-            } finally {
-                input.disabled = false;
-                input.focus();
-            }
-        }
-
-        function handleMainChatSubmit(e) {
-            e.preventDefault();
-            const input = document.getElementById('main-chat-input');
-            const container = document.getElementById('main-chat-container');
-            sendChatMessage('main', input, container);
-        }
-
-        function handleWidgetChatSubmit(e) {
-            e.preventDefault();
-            const input = document.getElementById('widget-chat-input');
-            const container = document.getElementById('widget-chat-messages');
-            sendChatMessage('widget', input, container);
-        }
-
-
-        // ==========================================
-        // THREE.JS 3D REALTIME RENDER ENGINES & CANVAS SETUP
-        // ==========================================
-        window.onload = function () {
-            
-            // Helper function to create interactive drag-to-rotate 3D Canvas
-            function setupInteractive3DCanvas(canvasId, createMeshCallback) {
-                const canvas = document.getElementById(canvasId);
-                if (!canvas) return;
-
-                const parent = canvas.parentElement;
-                const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(50, parent.clientWidth / parent.clientHeight, 0.1, 1000);
-                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
-
-                renderer.setSize(parent.clientWidth, parent.clientHeight);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-                const meshGroup = createMeshCallback(scene);
-
-                camera.position.z = 4.2;
-
-                // Mouse Drag Rotation State
-                let isDragging = false;
-                let previousMousePosition = { x: 0, y: 0 };
-
-                const container = canvas.parentElement;
-
-                container.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    previousMousePosition = { x: e.clientX, y: e.clientY };
-                });
-
-                window.addEventListener('mouseup', () => { isDragging = false; });
-
-                container.addEventListener('mousemove', (e) => {
-                    if (!isDragging || !meshGroup) return;
-                    const deltaMove = {
-                        x: e.clientX - previousMousePosition.x,
-                        y: e.clientY - previousMousePosition.y
-                    };
-
-                    meshGroup.rotation.y += deltaMove.x * 0.01;
-                    meshGroup.rotation.x += deltaMove.y * 0.01;
-
-                    previousMousePosition = { x: e.clientX, y: e.clientY };
-                });
-
-                // Render loop
-                function animate() {
-                    requestAnimationFrame(animate);
-                    if (meshGroup && !isDragging) {
-                        meshGroup.rotation.y += 0.005;
-                        meshGroup.rotation.x += 0.002;
-                    }
-                    renderer.render(scene, camera);
-                }
-                animate();
-
-                // Window Resize Handler
-                window.addEventListener('resize', () => {
-                    if (!parent) return;
-                    camera.aspect = parent.clientWidth / parent.clientHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(parent.clientWidth, parent.clientHeight);
-                });
-            }
-
-
-            // 1. BACKGROUND NEURAL PARTICLES CANVAS
-            (function initBgCanvas() {
-                const canvas = document.getElementById('bg-canvas');
-                const scene = new THREE.Scene();
-                const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-                const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-
-                renderer.setSize(window.innerWidth, window.innerHeight);
-
-                const count = 1200;
-                const geometry = new THREE.BufferGeometry();
-                const positions = new Float32Array(count * 3);
-
-                for (let i = 0; i < count * 3; i++) {
-                    positions[i] = (Math.random() - 0.5) * 16;
-                }
-
-                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-                const material = new THREE.PointsMaterial({ size: 0.035, color: 0x8b5cf6, transparent: true, opacity: 0.65 });
-                const points = new THREE.Points(geometry, material);
-                scene.add(points);
-
-                camera.position.z = 5;
-
-                document.addEventListener('mousemove', (e) => {
-                    const mouseX = (e.clientX / window.innerWidth) - 0.5;
-                    const mouseY = (e.clientY / window.innerHeight) - 0.5;
-                    points.rotation.y = mouseX * 0.5;
-                    points.rotation.x = mouseY * 0.5;
-                });
-
-                function animate() {
-                    requestAnimationFrame(animate);
-                    points.rotation.y += 0.0006;
-                    renderer.render(scene, camera);
-                }
-                animate();
-
-                window.addEventListener('resize', () => {
-                    camera.aspect = window.innerWidth / window.innerHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                });
-            })();
-
-
-            // 2. HERO: LOGO HonestAG 3D (con alone di particelle)
-            HonestAGLogo.mount('hero-3d-canvas', { aura: true, margin: 1.0 });
-
-
-            HonestAGLogo.mount('logo-slide-canvas', { margin: 1.15 });
-            HonestAGLogo.mount('insegna-3d-canvas', { margin: 1.15 });
-        };
-    </script>
+      </div>
+    </section>
+    <section class="section" id="servizi"><div class="wrap"><div class="section-head reveal"><div class="kicker">Un unico partner, ogni dettaglio</div><h2>La tranquillità di avere<br>tutto sotto controllo.</h2><p>Un sito bello è solo l’inizio. Ci prendiamo cura anche di quello che succede dietro le quinte.</p></div>
+      <div class="features">
+        <article class="feature reveal"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v12H4zM8 21h8m-4-4v4M8 9h8m-8 4h5"/></svg></div><h3>Design & velocità</h3><p>Siti responsive, veloci e ottimizzati per smartphone e motori di ricerca.</p></article>
+        <article class="feature reveal"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M8 12h8m-4-4v8"/></svg></div><h3>Sicurezza & backup</h3><p>Certificato SSL, protezione server e backup periodici sempre attivi.</p></article>
+        <article class="feature reveal"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 13a5 5 0 0 0 7.1 0l3-3A5 5 0 0 0 13 2.9l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.1 0l-3 3A5 5 0 0 0 11 21.1l1.7-1.7"/></svg></div><h3>Integrazioni smart</h3><p>WhatsApp, social e sistemi di prenotazione: tutto collegato al tuo sito.</p></article>
+        <article class="feature reveal"><div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2v-7.5A7.5 7.5 0 0 1 10.5 6H13"/><path d="M16 2v6m-3-3h6"/></svg></div><h3>Assistenza umana diretta</h3><p>Nessun ticket infinito: hai un canale diretto per gli aggiornamenti ordinari.</p></article>
+      </div>
+    </div></section>
+    <section class="section soft" id="piani"><div class="wrap"><div class="section-head reveal"><div class="kicker">Semplice da scegliere</div><h2>Il piano giusto per<br>la tua prossima crescita.</h2><p>Un’offerta chiara, costruita intorno alle esigenze della tua attività.</p></div>
+      <div class="plans">
+        <article class="plan reveal"><div class="plan-label">ESSENZIALE</div><h3>START</h3><p class="plan-desc">Per liberi professionisti e piccole attività che vogliono una presenza online pulita e professionale.</p><hr><ul class="plan-list"><li><span class="check">✓</span><span>Sito web fino a 3 pagine: Home, Chi siamo, Contatti</span></li><li><span class="check">✓</span><span>Design moderno, mobile-first</span></li><li><span class="check">✓</span><span>Collegamento rapido ai social</span></li><li><span class="check">✓</span><span>Hosting sicuro con SSL</span></li><li><span class="check">✓</span><span>Manutenzione tecnica, sicurezza e backup</span></li></ul><a class="btn btn-outline choose-plan" data-plan="START" href="#contatti">Scegli START <span aria-hidden="true">→</span></a><p class="plan-foot">Canone e tempi definiti insieme, senza sorprese.</p></article>
+        <article class="plan pro reveal"><span class="badge">★ CONSIGLIATO</span><div class="plan-label">ALL INCLUSIVE</div><h3>PRO</h3><p class="plan-desc">Per chi vuole usare il sito per acquisire clienti, con supporto continuo al proprio fianco.</p><hr><ul class="plan-list"><li><span class="check">✓</span><span>Tutto quello che include il piano START</span></li><li><span class="check">✓</span><span>Sito fino a 6–8 pagine o piccolo catalogo</span></li><li><span class="check">✓</span><span>WhatsApp diretto e prenotazioni online</span></li><li><span class="check">✓</span><span>Pixel social di base</span></li><li><span class="check">✓</span><span>Assistenza personale continuativa</span></li><li><span class="check">✓</span><span>Aggiornamenti ordinari di testi e immagini inclusi</span></li></ul><a class="btn choose-plan" data-plan="PRO" href="#contatti">Scegli PRO <span aria-hidden="true">→</span></a><p class="plan-foot">Canone e tempi definiti insieme, senza sorprese.</p></article>
+      </div>
+    </div></section>
+    <section class="section" id="metodo"><div class="wrap"><div class="section-head reveal"><div class="kicker">Il nostro metodo</div><h2>Tre passi. Poi ci pensiamo noi.</h2><p>Un percorso semplice, con un referente al tuo fianco dall’inizio alla gestione.</p></div>
+      <div class="steps"><article class="step reveal"><div class="step-no">01</div><h3>Raccolta materiali</h3><p>Ci racconti la tua attività: raccogliamo testi, foto e obiettivi con un breve onboarding.</p></article><article class="step reveal"><div class="step-no">02</div><h3>Sviluppo & sicurezza</h3><p>Realizziamo il sito e configuriamo dominio, SSL, social e prenotazioni.</p></article><article class="step reveal"><div class="step-no">03</div><h3>Online & gestione continua</h3><p>Pubblichiamo il sito e ci occupiamo di sicurezza, backup e aggiornamenti.</p></article></div>
+    </div></section>
+    <section class="section soft" id="faq"><div class="wrap"><div class="section-head reveal"><div class="kicker">Domande frequenti</div><h2>Dubbi? Facciamo chiarezza.</h2><p>Le risposte alle domande che ci fanno più spesso.</p></div>
+      <div class="faq-list reveal">
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Devo occuparmi io di aggiornamenti o backup?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg></button><div class="faq-a"><div><p>No. Manutenzione tecnica, aggiornamenti di sicurezza e backup periodici sono inclusi in entrambi i piani.</p></div></div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Posso collegare un sistema di prenotazione o WhatsApp?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg></button><div class="faq-a"><div><p>Sì, integriamo WhatsApp diretto, Calendly e sistemi di prenotazione dedicati, in base alle esigenze della tua attività.</p></div></div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Come funziona l’assistenza nel piano PRO?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg></button><div class="faq-a"><div><p>Hai un contatto diretto per richiedere modifiche ordinarie a testi e immagini. Tempi e modalità vengono concordati insieme.</p></div></div></div>
+        <div class="faq-item"><button class="faq-q" aria-expanded="false">Il sito sarà visibile bene da smartphone?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg></button><div class="faq-a"><div><p>Sì. Ogni sito è progettato mobile-first e si adatta a smartphone, tablet e computer.</p></div></div></div>
+      </div>
+    </div></section>
+    <section class="contact" id="contatti"><div class="wrap contact-grid"><div class="contact-copy reveal"><div class="kicker">Parliamone</div><h2>Facciamo spazio<br>alla tua prossima idea.</h2><p>Raccontaci cosa ti serve. L’email è il nostro riferimento principale per assistenza e comunicazioni: risponderemo per capire insieme il percorso più adatto.</p><ul class="contact-perks"><li><span class="check">✓</span> Nessun impegno, solo un confronto</li><li><span class="check">✓</span> Proposta chiara e personalizzata</li><li><span class="check">✓</span> Un referente al tuo fianco</li></ul><div style="display:grid;gap:10px;margin-bottom:18px;font-size:13px"><a href="mailto:honestagsupport@gmail.com"><strong>Email:</strong> honestagsupport@gmail.com</a><a href="tel:+393391043954"><strong>Telefono:</strong> +39 339 104 3954</a></div><a class="direct whatsapp-link" href="https://wa.me/393391043954?text=Ciao%20HonestAG%20agency%2C%20vorrei%20informazioni%20sui%20vostri%20servizi." target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.52 3.48A11.86 11.86 0 0 0 12.08 0C5.5 0 .14 5.35.13 11.93c0 2.1.55 4.16 1.61 5.98L0 24l6.24-1.64a11.93 11.93 0 0 0 5.84 1.49h.01c6.58 0 11.94-5.35 11.94-11.93a11.86 11.86 0 0 0-3.5-8.44ZM12.09 21.8h-.01a9.9 9.9 0 0 1-5.04-1.38l-.36-.21-3.7.97.99-3.6-.23-.37a9.86 9.86 0 0 1-1.51-5.28c0-5.47 4.45-9.92 9.94-9.92a9.87 9.87 0 0 1 7.02 2.91 9.86 9.86 0 0 1 2.9 7.02c0 5.48-4.46 9.93-9.94 9.93Zm5.45-7.43c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.47-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.14-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.51l-.57-.01c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.11 3.22 5.11 4.51.71.31 1.27.49 1.7.63.71.22 1.36.19 1.87.11.57-.08 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.13-.27-.2-.57-.35Z"/></svg> Preferisci WhatsApp? Scrivici direttamente</a></div>
+      <form class="form-card reveal" id="contactForm"><div class="form-grid"><div class="field"><label for="name">Nome</label><input id="name" name="name" autocomplete="name" placeholder="Il tuo nome" required></div><div class="field"><label for="reply">Email o telefono</label><input id="reply" name="reply" autocomplete="email" placeholder="Come possiamo ricontattarti?" required></div><div class="field full"><label for="plan">Piano di interesse</label><select id="plan" name="plan"><option value="Non so ancora">Non so ancora</option><option value="START">START</option><option value="PRO">PRO</option></select></div><div class="field full"><label for="message">Messaggio</label><textarea id="message" name="message" placeholder="Raccontaci brevemente cosa ti serve…" required></textarea></div></div><div class="form-bottom"><button class="btn" type="submit">Prepara email <span aria-hidden="true">→</span></button><span class="privacy-note">Si aprirà il tuo programma email con la richiesta indirizzata a honestagsupport@gmail.com.</span></div><div class="success" id="formSuccess" role="status" aria-live="polite"></div></form>
+    </div></section>
+  </main>
+  <footer><div class="wrap"><div class="footer-grid"><div class="footer-about"><a class="brand" href="#top"><span class="brand-mark">h</span><span>HonestAG <em>agency</em></span></a><p>Progetto indipendente in fase iniziale, dedicato alla creazione e gestione di presenze online professionali.</p></div><div class="footer-col"><h4>Esplora</h4><a href="#servizi">Servizi</a><a href="#piani">Piani</a><a href="#metodo">Come lavoriamo</a><a href="#faq">FAQ</a></div><div class="footer-col"><h4>Contatti e assistenza</h4><a href="mailto:honestagsupport@gmail.com">honestagsupport@gmail.com</a><a href="tel:+393391043954">+39 339 104 3954</a><a class="whatsapp-link" href="https://wa.me/393391043954?text=Ciao%20HonestAG%20agency%2C%20vorrei%20informazioni%20sui%20vostri%20servizi." target="_blank" rel="noopener noreferrer">WhatsApp</a></div><div class="footer-col"><h4>Informazioni</h4><span>Progetto indipendente</span><span>P. IVA non ancora disponibile</span><span>© <span id="year"></span> HonestAG agency</span></div></div><div class="footer-legal"><span>Realizzato con cura. Tutti i diritti riservati.</span><div class="legal-links"><button type="button" data-modal="privacy">Privacy Policy</button><button type="button" data-modal="cookie">Cookie Policy</button></div></div></div></footer>
+  <div class="modal" id="legalModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-card"><div class="modal-head"><h3 id="modalTitle">Informazioni</h3><button class="icon-btn" id="closeModal" aria-label="Chiudi finestra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div><p id="modalText"></p></div></div>
+  <button class="chat-launch" id="chatLaunch" type="button" hidden>Hai una domanda? <span aria-hidden="true">✦</span></button>
+  <section class="chat-panel" id="chatPanel" aria-label="Assistente HonestAG" aria-live="polite"><div class="chat-head"><span>Assistente HonestAG</span><button class="icon-btn" id="chatClose" aria-label="Chiudi assistente">×</button></div><div class="chat-log" id="chatLog"><div class="chat-msg">Ciao! Posso aiutarti con informazioni documentate su HonestAG.</div></div><form class="chat-form" id="chatForm"><input id="chatQuestion" maxlength="1500" placeholder="Chiedi a HonestAG…" aria-label="La tua domanda" required><button type="submit">Invia</button></form></section>
+  <script src="chatbot-config.js"></script>
+  <script>
+    const SUPPORT_EMAIL = 'honestagsupport@gmail.com';
+    const root = document.documentElement;
+    const themeButton = document.getElementById('themeToggle');
+    const accessButton = document.getElementById('accessToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const sunIcon = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>';
+    const moonIcon = '<path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.5 8.5 0 1 0 20.9 13Z"/>';
+    function setTheme(theme){root.dataset.theme=theme;localStorage.setItem('honestag-theme',theme);themeButton.setAttribute('aria-label',theme==='dark'?'Attiva tema chiaro':'Attiva tema scuro');themeIcon.innerHTML=theme==='dark'?moonIcon:sunIcon;document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#09090b':'#f8fafc'}
+    setTheme(localStorage.getItem('honestag-theme')||'light');
+    themeButton.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+    const accessible=localStorage.getItem('honestag-accessible')==='true';root.dataset.accessible=accessible;accessButton.setAttribute('aria-pressed',String(accessible));
+    accessButton.addEventListener('click',()=>{const active=root.dataset.accessible!=='true';root.dataset.accessible=String(active);accessButton.setAttribute('aria-pressed',String(active));accessButton.setAttribute('aria-label',active?'Disattiva modalità accessibilità ad alto contrasto':'Attiva modalità accessibilità ad alto contrasto');localStorage.setItem('honestag-accessible',String(active))});
+    const menuToggle=document.getElementById('menuToggle'),navLinks=document.getElementById('navLinks');menuToggle.addEventListener('click',()=>{const open=navLinks.classList.toggle('open');menuToggle.setAttribute('aria-expanded',String(open));menuToggle.setAttribute('aria-label',open?'Chiudi menu':'Apri menu')});navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{navLinks.classList.remove('open');menuToggle.setAttribute('aria-expanded','false')}));
+    document.querySelectorAll('.faq-q').forEach(button=>button.addEventListener('click',()=>{const expanded=button.getAttribute('aria-expanded')==='true';document.querySelectorAll('.faq-q').forEach(other=>other.setAttribute('aria-expanded','false'));button.setAttribute('aria-expanded',String(!expanded))}));
+    document.querySelectorAll('.choose-plan').forEach(button=>button.addEventListener('click',()=>{document.getElementById('plan').value=button.dataset.plan}));
+    document.getElementById('contactForm').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;if(!form.reportValidity())return;const fields=new FormData(form);const subject=`Richiesta HonestAG — ${fields.get('plan')}`;const body=[`Nome: ${fields.get('name')}`,`Ricontatto: ${fields.get('reply')}`,`Piano: ${fields.get('plan')}`,'',String(fields.get('message'))].join('\n');const status=document.getElementById('formSuccess');status.textContent='Bozza email preparata. Controlla il programma email: dovrai premere Invia per completare l’invio.';status.classList.add('show');window.location.href=`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`});
+    const modal=document.getElementById('legalModal');document.querySelectorAll('[data-modal]').forEach(button=>button.addEventListener('click',()=>{document.getElementById('modalTitle').textContent=button.dataset.modal==='privacy'?'Privacy Policy':'Cookie Policy';document.getElementById('modalText').textContent='Questa pagina informativa deve essere completata con i dati del titolare del trattamento, le finalità, la base giuridica, i tempi di conservazione e i recapiti per le richieste privacy prima della pubblicazione. Verifica i contenuti con un professionista in base ai servizi e agli strumenti effettivamente utilizzati.';modal.classList.add('open');document.getElementById('closeModal').focus()}));function closeModal(){modal.classList.remove('open')}document.getElementById('closeModal').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+    document.getElementById('year').textContent=new Date().getFullYear();
+    if('IntersectionObserver'in window&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches){const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el))}else{document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'))}
+    const chatbotEndpoint=window.HONESTAG_CHATBOT_URL;if(chatbotEndpoint){const launch=document.getElementById('chatLaunch'),panel=document.getElementById('chatPanel'),log=document.getElementById('chatLog');launch.hidden=false;launch.addEventListener('click',()=>panel.classList.toggle('open'));document.getElementById('chatClose').addEventListener('click',()=>panel.classList.remove('open'));document.getElementById('chatForm').addEventListener('submit',async event=>{event.preventDefault();const input=document.getElementById('chatQuestion'),question=input.value.trim();if(!question)return;const user=document.createElement('div');user.className='chat-msg user';user.textContent=question;log.append(user);input.value='';const pending=document.createElement('div');pending.className='chat-msg';pending.textContent='Sto cercando nelle informazioni approvate…';log.append(pending);log.scrollTop=log.scrollHeight;try{const response=await fetch(chatbotEndpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question})});const data=await response.json();if(!response.ok)throw Error();pending.textContent=data.answer||data.error||'Non ho trovato informazioni documentate sufficienti.';if(data.sources?.length)pending.textContent+=`\n\nFonti: ${data.sources.map(source=>source.title).join(', ')}`}catch{pending.textContent='Il servizio non è al momento disponibile. Scrivi a honestagsupport@gmail.com.'}log.scrollTop=log.scrollHeight})}
+  </script>
 </body>
 </html>
